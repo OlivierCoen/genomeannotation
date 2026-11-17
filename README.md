@@ -23,6 +23,10 @@
 
 **nf-core/genomeannotation** is a bioinformatics pipeline that performs end-to-end genome annotation (structural + functional) for **eukaryotic organisms**. After sequencing and assembling a genome, annotation is essential to identify gene locations and their functions. However, the annotation process can be complex, time-consuming, and challenging for less experienced users. The **nf-core/genomeannotation** pipeline aims to simplify this process, offering users a seamless and intuitive experience while ensuring high-quality annotations.
 
+<p align="center">
+    <img title="Workflow" src="docs/images/metromap/nf_genome_annotator.drawio.svg" width=100%>
+</p>
+
 ## Pipeline overview
 
 The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes data in multiple distinct steps.
