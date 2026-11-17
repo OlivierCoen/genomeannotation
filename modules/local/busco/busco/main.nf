@@ -7,7 +7,7 @@ process BUSCO_BUSCO {
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
             ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/54/541932735559672d1f3e588126b044b579d484f98cc70b4903234801b45af193/data'
-            : ''}"
+            : 'community.wave.seqera.io/library/busco_gzip:6a1dc614c447962e'}"
     // Note: one test had to be disabled when switching to Busco 6.0.0, cf https://github.com/nf-core/modules/pull/8781/files
     // Try to restore it when upgrading Busco to a later version
 
