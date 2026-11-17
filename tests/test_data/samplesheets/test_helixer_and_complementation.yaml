@@ -1,0 +1,4 @@
+- sample: test
+  genome: https://raw.githubusercontent.com/Gaius-Augustus/BRAKER/master/example/genome.fa
+  species: arabidopsis thaliana
+  

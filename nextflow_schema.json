@@ -18,9 +18,9 @@
                     "exists": true,
                     "schema": "assets/schema_input.json",
                     "mimetype": "text/csv",
-                    "pattern": "^\\S+\\.csv$",
+                    "pattern": "^\\S+\\.(csv|tsv|yaml|json)$",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re/genomeannotation/usage#samplesheet-input).",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row.",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "outdir": {
@@ -43,52 +43,393 @@
                 }
             }
         },
-        "institutional_config_options": {
-            "title": "Institutional config options",
+        "masking_options": {
+            "title": "Options for detection of repeated elements / genome masking",
             "type": "object",
-            "fa_icon": "fas fa-university",
-            "description": "Parameters used to describe centralised config profiles. These should not be edited.",
-            "help_text": "The centralised nf-core configuration profiles use a handful of pipeline parameters to describe themselves. This information is then printed to the Nextflow log when you run a pipeline. You should not need to change these values when you run a pipeline.",
+            "fa_icon": "fas fa-terminal",
+            "description": "Options for genome masking",
             "properties": {
-                "custom_config_version": {
-                    "type": "string",
-                    "description": "Git commit id for Institutional configs.",
-                    "default": "master",
-                    "hidden": true,
-                    "fa_icon": "fas fa-users-cog"
+                "skip_masking": {
+                    "type": "boolean",
+                    "description": "Skip genome masking",
+                    "fa_icon": "fas fa-hand-scissors"
                 },
-                "custom_config_base": {
+                "genome_masker": {
                     "type": "string",
-                    "description": "Base directory for Institutional configs.",
-                    "default": "https://raw.githubusercontent.com/nf-core/configs/master",
-                    "hidden": true,
-                    "help_text": "If you're running offline, Nextflow will not be able to fetch the institutional config files from the internet. If you don't need them, then this is not a problem. If you do need them, you should download the files from the repo and tell Nextflow where to find them with this parameter.",
-                    "fa_icon": "fas fa-users-cog"
+                    "description": "Tool to use for genome masking. Choose between the RepeatModeler / RepeatMasker suite, or EarlGrey.",
+                    "enum": ["repeatmasker", "red", "earlgrey"],
+                    "default": "repeatmasker",
+                    "help_text": "As a rule of thumb, in terms of accuracy, earlGrey is more accurate (but takes longer) than RepeatModeler / RepeatMasker. Use Red for very fast masking, but less acurate."
                 },
-                "config_profile_name": {
+                "dfam_db": {
                     "type": "string",
-                    "description": "Institutional config name.",
-                    "hidden": true,
-                    "fa_icon": "fas fa-users-cog"
-                },
-                "config_profile_description": {
-                    "type": "string",
-                    "description": "Institutional config description.",
-                    "hidden": true,
-                    "fa_icon": "fas fa-users-cog"
-                },
-                "config_profile_contact": {
-                    "type": "string",
-                    "description": "Institutional config contact information.",
-                    "hidden": true,
-                    "fa_icon": "fas fa-users-cog"
-                },
-                "config_profile_url": {
-                    "type": "string",
-                    "description": "Institutional config URL link.",
-                    "hidden": true,
-                    "fa_icon": "fas fa-users-cog"
+                    "description": "Path to DFAM database",
+                    "fa_icon": "fas fa-hand-scissors",
+                    "help_text": "Folder containing the DFAM database files"
                 }
+            }
+        },
+        "rnaseq_general_options": {
+            "title": "General options for RNA-seq reads",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "General options for RNA-seq reads",
+            "properties": {
+                "force_prepare_rnaseq": {
+                    "type": "boolean",
+                    "description": "Force preparation of RNA-seq data",
+                    "fa_icon": "fas fa-hand-scissors",
+                    "help_text": "By default, preparation (cleaning and / or mapping) is performed only when a structural annotator that uses such data is selected. You can chose set this flag to force the downloading / preprocessing / mapping of RNA-seq data in any case."
+                },
+                "fetch_sra_rnaseq": {
+                    "type": "boolean",
+                    "description": "Allow automatic fetching of RNAseq data from NCBI SRA.",
+                    "fa_icon": "fas fa-hand-scissors",
+                    "help_text": "A random set of RNAseq SRA datasets will be downloaded. The number of such datasets can be adjusted with --nb_fetched_sra_datasets."
+                },
+                "skip_fastqc": {
+                    "type": "boolean",
+                    "description": "Skip all FastQC steps for RNA-seq reads.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "skip_fastqc_raw": {
+                    "type": "boolean",
+                    "description": "Skip FastQC for raw RNA-seq reads.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "skip_fastqc_cleaned": {
+                    "type": "boolean",
+                    "description": "Skip FastQC for cleaned RNA-seq reads.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "skip_umi_extract": {
+                    "type": "boolean",
+                    "description": "Skip UMI extract for RNA-seq reads.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "skip_short_read_cleaning": {
+                    "type": "boolean",
+                    "description": "Skip cleaning (trimming / adapter removal) for short RNA-seq reads.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "skip_long_read_cleaning": {
+                    "type": "boolean",
+                    "description": "Skip cleaning (trimming / adapter removal) for long RNA-seq reads.",
+                    "fa_icon": "fas fa-hand-scissors"
+                }
+            }
+        },
+        "rnaseq_sra_options": {
+            "title": "Options for fetching RNAseq data from NCBI SRA",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Options for structural annotation",
+            "properties": {
+                "nb_short_read_sra_datasets": {
+                    "type": "integer",
+                    "description": "Number of short read RNAseq SRA datasets to fetch.",
+                    "default": 5,
+                    "mininum": 0,
+                    "help_text": "When more short read datasets are available than the specified value, a random subset will be selected. Set to 0 to disable download of short read datasets."
+                },
+                "nb_long_read_sra_datasets": {
+                    "type": "integer",
+                    "description": "Number of long read RNAseq SRA datasets to fetch.",
+                    "mininum": 0,
+                    "default": 5,
+                    "help_text": "When more long read datasets are available than the specified value, a random subset will be selected. Set to 0 to disable download of long read datasets."
+                },
+                "sra_max_size": {
+                    "type": "string",
+                    "default": "string",
+                    "fa_icon": "fas fa-barcode",
+                    "description": "Maximum size (in Mb / Gb) allowed for an experiment. Must end with 'Mb' or 'Gb'. Example: `10.2Mb` / `2Gb`"
+                },
+                "sra_allow_single_end": {
+                    "type": "boolean",
+                    "description": "For short read RNAseq SRA datasets, allow fetching single end datasets when not enough paired-end data are found.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "sra_random_seed": {
+                    "type": "integer",
+                    "description": "Random seed for selecting SRA datasets.",
+                    "default": 42,
+                    "help_text": "Change this seed to get a different random selection of SRA datasets."
+                },
+                "read_sampling_size": {
+                    "type": ["integer", "number"],
+                    "description": "Subsample reads using the specified number of reads / fraction of total reads.",
+                    "default": 1,
+                    "help_text": "Set an integer in order to select this amount of reads. Set a float between 0 and 1 to select a certain proportion of reads. If unset, no sampling is performed (default)."
+                }
+            }
+        },
+        "rnaseq_umi_options": {
+            "title": "Options for UMI extraction of RNA-seq reads",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Options for UMI extraction of RNA-seq reads",
+            "properties": {
+                "umitools_extract_method": {
+                    "type": "string",
+                    "default": "string",
+                    "fa_icon": "fas fa-barcode",
+                    "description": "UMI pattern to use. Can be either 'string' (default) or 'regex'.",
+                    "help_text": "Detailed information can be found in the [UMI-tools documentation](https://umi-tools.readthedocs.io/en/latest/reference/extract.html#extract-method)."
+                },
+                "umitools_bc_pattern": {
+                    "type": "string",
+                    "minLength": 1,
+                    "fa_icon": "fas fa-barcode",
+                    "help_text": "Detailed information can be found in the [UMI-tools documentation](https://umi-tools.readthedocs.io/en/latest/reference/extract.html#extract-method).",
+                    "description": "The UMI barcode pattern to use e.g. 'NNNNNN' indicates that the first 6 nucleotides of the read are from the UMI."
+                },
+                "umitools_bc_pattern2": {
+                    "type": "string",
+                    "minLength": 1,
+                    "fa_icon": "fas fa-barcode",
+                    "description": "The UMI barcode pattern to use if the UMI is located in read 2."
+                },
+                "umitools_umi_separator": {
+                    "type": "string",
+                    "pattern": "^\\S+$",
+                    "minLength": 1,
+                    "maxLength": 1,
+                    "errorMessage": "The UMI separator must not contain spaces and must be a single character (e.g., ':').",
+                    "fa_icon": "fas fa-star-half-alt",
+                    "description": "The character that separates the UMI in the read name. Most likely a colon if you skipped the extraction with UMI-tools and used other software."
+                }
+            }
+        },
+        "rnaseq_mapping_options": {
+            "title": "Options for mapping of RNA-seq reads",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Options for mapping of RNA-seq reads",
+            "properties": {
+                "short_read_mapper": {
+                  "type": "string",
+                  "description": "Tool to use for RNA-seq read mapping.",
+                  "enum": ["hisat2", "star"],
+                  "default": "hisat2"
+                },
+                "ignore_existing_gff_for_mapping": {
+                    "type": "boolean",
+                    "description": "Ignore existing GTF (when provided) for guiding RNA-seq read mapping.",
+                    "fa_icon": "fas fa-hand-scissors"
+                }
+            }
+        },
+        "protein_db_build_options": {
+            "title": "Options for building custom protein database",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Options for genome masking",
+            "properties": {
+                "force_prepare_proteins": {
+                    "type": "boolean",
+                    "description": "Force preparation of trining proteins",
+                    "fa_icon": "fas fa-hand-scissors",
+                    "help_text": "By default, preparation of trining proteins is performed only when a structural annotator that uses such data is selected. You can chose set this flag to force the downloading / preprocessing of training proteins in any case."
+                },
+                "skip_orthodb_download": {
+                    "type": "boolean",
+                    "description": "Skip download of OrthoDB protein database.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "orthodb_local": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Path to OrthoDB protein fasta database.",
+                    "help_text": "Use this to supply an URL / a path to a pre-downloaded OrthoDB protein fasta file. Essentially for dev purposes.",
+                    "fa_icon": "fas fa-database"
+                },
+                "orthodb_version": {
+                    "type": "string",
+                    "pattern": "^odb[0-9]+v[0-9]+$",
+                    "description": "Version of OrthoDB to use",
+                    "help_text": "Version of OrthoDB to use. Example: odb13v0",
+                    "fa_icon": "fas fa-database"
+                },
+                "skip_mmseqs_db_download": {
+                    "type": "boolean",
+                    "description": "Skip download of MMseqs2 protein database.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "mmseqs_db": {
+                    "type": "string",
+                    "default": null,
+                    "description": "A string containing the name of one of the databases listed in the [mmseqs2 documentation](https://github.com/soedinglab/MMseqs2/wiki#downloading-databases). This database will be downloaded and formatted for eukaryotic genome annotation. Set to `UniRef50` by default.",
+                    "help_text": "mmseqs2 lists a large number of databases, not all of which are appropriate for use with MetaEuk. MetaEuk requires protein inputs, so you should select one of the Aminoacid or Profile options."
+                },
+                "min_prot_db_seq_length": {
+                    "type": "integer",
+                    "description": "Minimum sequence length for protein database",
+                    "minimum": 1,
+                    "fa_icon": "fas fa-database",
+                    "help_text": "Minimum sequence length for protein database (after all protein fasta files have been concatenated)"
+                }
+            }
+        },
+        "structural_annotation_options": {
+            "title": "Options for structural annotation",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Options for structural annotation",
+            "properties": {
+                "skip_structural_annotation": {
+                    "type": "boolean",
+                    "description": "Skip structural annotation.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "structural_annotator": {
+                    "type": "string",
+                    "description": "Tool to use for structural annotation",
+                    "enum": ["braker3", "helixer", "metaeuk"],
+                    "default": "braker3"
+                }
+            }
+        },
+        "annotation_complementation_options": {
+            "title": "Options for complementation of structural annotation",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Options for complementation of structural annotation",
+            "properties": {
+                "complement_annotation": {
+                    "type": "boolean",
+                    "description": "Perform complementation of structural annotation using existing annotation.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "complementation_use_ref_as_template": {
+                    "type": "boolean",
+                    "description": "Use the provided `GFF` / `GTF` annotation file as the template for the complementation.",
+                    "fa_icon": "fas fa-hand-scissors",
+                    "help_text": "By default, the new structural annotation is used as the template (the reference) for the complementation. If this flag is set, the provided reference  `GFF` / `GTF` annotation file is used instead. Use this option if you trust your existing annotation and want to enrich it with new annotations."
+                }
+            }
+        },
+        "cleaning_options": {
+            "title": "Options for cleaning of annotation",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Options for cleaning of annotation (new structural annotation or annotation provided by the user)",
+            "properties": {
+                "skip_gff_cleaning": {
+                    "type": "boolean",
+                    "description": "Skip annotation cleaning.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "gff_fix_feature_locations_duplicated": {
+                    "type": "boolean",
+                    "description": "Fix feature locations duplicated in structural annotation",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "gff_fix_overlapping_genes": {
+                    "type": "boolean",
+                    "description": "Skip processing of GFF to fix overlapping genes",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "gff_filter_incomplete_gene_models": {
+                    "type": "boolean",
+                    "description": "Skip processing of GFF to filter incomplete gene models",
+                    "fa_icon": "fas fa-hand-scissors"
+                }
+            }
+        },
+        "alternative_annotations_options": {
+            "title": "Options related to alternative annotations",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Options related to alternative annotations",
+            "properties": {
+                "skip_alternative_annotations": {
+                    "type": "boolean",
+                    "description": "Skip making alternative annotations.",
+                    "fa_icon": "fas fa-hand-scissors"
+                }
+            }
+        },
+        "functional_annotation_options": {
+            "title": "Options for functional annotation",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Options for functional annotation",
+            "properties": {
+                "skip_functional_annotation": {
+                    "type": "boolean",
+                    "description": "Skip functional annotation",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "functional_annotators": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": ["eggnogmapper", "interproscan6", "interproscan5"]
+                    },
+                    "description": "Tool(s) to use for functional annotation. Tools should be separated by comma(s).",
+                    "default": ["eggnogmapper", "interproscan6"],
+                    "help_text": "The options `interproscan6` and `interproscan5` are mutually exclusive. `interproscan5` is proposed as a legacy options, especially in case where bugs are encountered with `interproscan6`"
+                },
+                "eggnog_mapper_mode": {
+                    "type": "string",
+                    "enum": ["diamond", "pfam", "mmseqs"],
+                    "default": "diamond",
+                    "fa_icon": "fas fa-database"
+                },
+                "interproscan": {
+                    "type": "string",
+                    "enum": ["diamond", "pfam", "mmseqs"],
+                    "default": "diamond",
+                    "fa_icon": "fas fa-database"
+                },
+                "interproscan5_db_url": {
+                    "type": "string",
+                    "help_text": "This allows the user to change the InterProScan database version that the pipeline will download for you automatically. To instead use a pre-downloaded database, please supply its path to `--interproscan5_db`. Changing this URL allows for the use of the latest database release.",
+                    "description": "Change the database version used for annotation.",
+                    "fa_icon": "fas fa-database"
+                },
+                "interproscan5_db": {
+                    "type": "string",
+                    "format": "file-path",
+                    "help_text": "Use this to supply the path to a pre-downloaded InterProScan database. This can be any unzipped InterProScan version.\n\nFor more details on where to find different InterProScan databases see tool [documentation](https://interproscan-docs.readthedocs.io/en/latest/UserDocs.html#obtaining-a-copy-of-interproscan).\n",
+                    "description": "Path to pre-downloaded InterProScan database.",
+                    "fa_icon": "fas fa-database"
+                }
+            }
+        },
+        "quality_control_options": {
+            "title": "Options for quality control",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Options for quality control",
+            "properties": {
+              "skip_qc": {
+                "type": "boolean",
+                "description": "Skip all quality controls.",
+                "fa_icon": "fas fa-hand-scissors"
+              },
+              "skip_busco": {
+                "type": "boolean",
+                "description": "Skip BUSCO",
+                "fa_icon": "fas fa-hand-scissors"
+              },
+              "skip_omark": {
+                  "type": "boolean",
+                  "description": "Skip OMArk",
+                  "fa_icon": "fas fa-hand-scissors"
+              },
+              "omamer_db_url": {
+                  "type": "string",
+                  "description": "OMAMER database URL.",
+                  "help": "Example: https://omabrowser.org/All/LUCA.h5"
+              },
+              "omamer_db": {
+                  "type": "string",
+                  "format": "file-path",
+                  "exists": true,
+                  "description": "Path to the OMAMER database."
+              }
             }
         },
         "generic_options": {
@@ -192,13 +533,97 @@
                     "description": "Display hidden parameters in the help message (only works when --help or --help_full are provided)."
                 }
             }
-        }
+        },
+	"institutional_config_options": {
+            "title": "Institutional config options",
+            "type": "object",
+            "fa_icon": "fas fa-university",
+            "description": "Parameters used to describe centralised config profiles. These should not be edited.",
+            "help_text": "The centralised nf-core configuration profiles use a handful of pipeline parameters to describe themselves. This information is then printed to the Nextflow log when you run a pipeline. You should not need to change these values when you run a pipeline.",
+            "properties": {
+                "custom_config_version": {
+                    "type": "string",
+                    "description": "Git commit id for Institutional configs.",
+                    "default": "master",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "custom_config_base": {
+                    "type": "string",
+                    "description": "Base directory for Institutional configs.",
+                    "default": "https://raw.githubusercontent.com/nf-core/configs/master",
+                    "hidden": true,
+                    "help_text": "If you're running offline, Nextflow will not be able to fetch the institutional config files from the internet. If you don't need them, then this is not a problem. If you do need them, you should download the files from the repo and tell Nextflow where to find them with this parameter.",
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "config_profile_name": {
+                    "type": "string",
+                    "description": "Institutional config name.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "config_profile_description": {
+                    "type": "string",
+                    "description": "Institutional config description.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "config_profile_contact": {
+                    "type": "string",
+                    "description": "Institutional config contact information.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "config_profile_url": {
+                    "type": "string",
+                    "description": "Institutional config URL link.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog"
+                }
+            }
+        },
     },
     "allOf": [
         {
             "$ref": "#/$defs/input_output_options"
         },
         {
+            "$ref": "#/$defs/masking_options"
+        },    
+        {
+            "$ref": "#/$defs/rnaseq_general_options"
+        },
+        {
+            "$ref": "#/$defs/rnaseq_sra_options"
+        },
+        {
+            "$ref": "#/$defs/rnaseq_umi_options"
+        },
+        {
+            "$ref": "#/$defs/rnaseq_mapping_options"
+        },
+        {
+            "$ref": "#/$defs/protein_db_build_options"
+        },
+        {
+            "$ref": "#/$defs/structural_annotation_options"
+        },
+        {
+            "$ref": "#/$defs/annotation_complementation_options"
+        },
+        {
+            "$ref": "#/$defs/cleaning_options"
+        },
+        {
+            "$ref": "#/$defs/alternative_annotations_options"
+        },
+        {
+            "$ref": "#/$defs/functional_annotation_options"
+        },
+        {
+            "$ref": "#/$defs/quality_control_options"
+        },
+	{
             "$ref": "#/$defs/institutional_config_options"
         },
         {

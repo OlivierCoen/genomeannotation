@@ -1,4 +1,7 @@
 #!/usr/bin/env nextflow
+
+nextflow.enable.types = true
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     nf-core/genomeannotation
@@ -37,15 +40,18 @@ workflow NFCORE_GENOMEANNOTATION {
     //
     // WORKFLOW: Run pipeline
     //
-    GENOMEANNOTATION (
+    ch_pipeline_out = GENOMEANNOTATION (
         samplesheet,
         params.multiqc_config,
         params.multiqc_logo,
         params.multiqc_methods_description,
         params.outdir,
     )
+
     emit:
-    multiqc_report = GENOMEANNOTATION.out.multiqc_report // channel: /path/to/multiqc_report.html
+    results            = ch_pipeline_out.results
+    additional_results = ch_pipeline_out.additional_results
+    logs               = ch_pipeline_out.logs
 }
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -59,7 +65,7 @@ workflow {
     //
     // SUBWORKFLOW: Run initialisation tasks
     //
-    PIPELINE_INITIALISATION (
+    ch_samplesheet = PIPELINE_INITIALISATION (
         params.version,
         params.validate_params,
         params.monochrome_logs,
@@ -74,24 +80,77 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    NFCORE_GENOMEANNOTATION (
+    ch_pipeline_out = NFCORE_GENOMEANNOTATION (
         PIPELINE_INITIALISATION.out.samplesheet
     )
+
     //
     // SUBWORKFLOW: Run completion tasks
     //
+    
     PIPELINE_COMPLETION (
         params.email,
         params.email_on_fail,
         params.plaintext_email,
         params.outdir,
         params.monochrome_logs,
-        NFCORE_GENOMEANNOTATION.out.multiqc_report
+        ch_pipeline_out.results.map{ rec -> rec.multiqc_report }.toList()
     )
+
+    publish:
+    results               = ch_pipeline_out.results
+    additional_results    = ch_pipeline_out.additional_results
+    logs                  = ch_pipeline_out.logs
 }
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    THE END
+OUTPUTS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+
+output {
+
+    results {
+        path { rec ->
+            rec.final_annotation >> "${rec.id}/${rec.id}.annotation.gff3"
+            rec.proteome         >> "${rec.id}/${rec.id}.proteome.faa"
+            rec.masked_genome    >> "${rec.id}/${rec.id}.masked_genome.fna"
+            rec.multiqc_report   >> "${rec.id}/${rec.id}.multiqc_report.html"
+
+            rec.structural_annotation    >> "${rec.id}/structural_annotations/final/"
+            rec.intermediate_annotations >> "${rec.id}/structural_annotations/partially_cleaned/"
+            rec.alternative_annotations  >> "${rec.id}/structural_annotations/alternative/"
+
+
+            rec.eggnogmapper_output   >> "${rec.id}/functional_annotations/eggnog_mapper/"
+            rec.interproscan_output   >> "${rec.id}/functional_annotations/interproscan/"
+            rec.functional_annotation >> "${rec.id}/functional_annotations/"
+
+            rec.genome_stats                >> "${rec.id}/quality_controls/"
+            rec.structural_annotation_stats >> "${rec.id}/quality_controls/${rec.id}.structural_annotation_stats.yaml"
+            rec.functional_annotation_stats >> "${rec.id}/quality_controls/${rec.id}.functional_annotation_stats.yaml"
+            rec.omark                       >> "${rec.id}/quality_controls/"
+        }
+    }
+
+    additional_results {
+        path { tool_name, id, files -> 
+            files >> "${id}/${tool_name}/"
+        }
+    }
+
+    logs {
+        path { tool_name, id, files -> 
+            files >> "${id}/${tool_name}/"
+        }
+    }
+
+}
+
+/*
+rec.reads.each{ file -> file >> "${rec.id}/structural_annotations/mappings/downloaded_reads/" }
+rec.bams.each { file -> file >> "${rec.id}/structural_annotations/mappings/" }
+rec.bais.each { file -> file >> "${rec.id}/structural_annotations/mappings/" }
 */
