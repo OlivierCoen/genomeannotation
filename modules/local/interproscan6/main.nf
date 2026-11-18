@@ -3,7 +3,7 @@ nextflow.enable.types = true
 include { removeKeyValueArgs; 
           buildCacheDirURI;
           getWorkflowConfigPaths;
-          workflowHasResumeFlag } from '../../../subworkflows/local/utils_nfcore_genomeannotator_pipeline'
+          workflowHasResumeFlag } from '../../../subworkflows/local/utils_nfcore_genomeannotation_pipeline'
 
 // hard-coded versions to ensure reproducibility
 def getNextflowVersion(){

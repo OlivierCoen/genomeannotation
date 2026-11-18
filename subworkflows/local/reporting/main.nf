@@ -2,7 +2,7 @@ nextflow.enable.types = true
 
 include { MULTIQC                                } from '../../../modules/nf-core/multiqc'
 
-include { methodsDescriptionText                 } from '../utils_nfcore_genomeannotator_pipeline'
+include { methodsDescriptionText                 } from '../utils_nfcore_genomeannotation_pipeline'
 include { paramsSummaryMultiqc                   } from '../../nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                 } from '../../nf-core/utils_nfcore_pipeline'
 include { paramsSummaryMap                       } from 'plugin/nf-schema'
@@ -44,7 +44,7 @@ workflow REPORTING {
     ch_collated_versions = topic_versions_string
                             .collectFile(
                                 storeDir: "${outdir}/pipeline_info",
-                                name: 'nf_core_'  +  'genomeannotator_software_'  + 'mqc_'  + 'versions.yml',
+                                name: 'nf_core_'  +  'genomeannotation_software_'  + 'mqc_'  + 'versions.yml',
                                 sort: true,
                                 newLine: true
                             )
