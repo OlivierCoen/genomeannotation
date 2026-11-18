@@ -20,7 +20,7 @@ def warnNoProteinsFound(rec: Record){
 
 record Input {
     id: String
-    training_proteins: Set<Path>
+    training_proteins: List<Path>
     mmseqs_db: String
 }
 

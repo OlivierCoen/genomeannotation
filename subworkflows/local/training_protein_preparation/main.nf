@@ -22,7 +22,7 @@ def warnNoProteinsFound(rec: Record){
 
 record Input {
     id: String
-    supplied_training_proteins: Set<Path>
+    supplied_training_proteins: List<Path>
 }
 
 
@@ -42,22 +42,22 @@ workflow TRAINING_PROTEIN_PREPARATION {
     // ----------------------------------------------------------
 
     if ( orthodb_local ) {
-    
+
         ch_orthodb_local = channel.fromPath( orthodb_local, checkExists: true )
                             .map { file -> record(orthodb_proteins: file) }
-                            
+
         ch_input = ch_input.combine( ch_orthodb_local )
-                        
+
     } else {
-            
+
         if ( !skip_orthodb_download ) {
-    
-            ch_prepared_orthodb = GET_ORTHODB_CLADE_PROTEINS( 
+
+            ch_prepared_orthodb = GET_ORTHODB_CLADE_PROTEINS(
                 ch_input.map { rec -> rec.subMap(['species', 'taxid_lineage']) }.unique()
             )
             ch_input = ch_input.join(ch_prepared_orthodb, by: 'species')
-    
-    
+
+
         } else {
             ch_input = ch_input.map { rec -> rec + record(orthodb_proteins: null) }
         }
@@ -94,7 +94,7 @@ workflow TRAINING_PROTEIN_PREPARATION {
     )
 
     ch_proteins = ch_proteins.map { rec -> record(id: rec.id, proteins_fasta: rec.fasta) }
-    
+
     emit:
     ch_input.join(ch_proteins, by: 'id')
 }

@@ -50,8 +50,8 @@ HELIXER_LINEAGES = {
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--species", 
-        type=str, 
+        "--species",
+        type=str,
         required=True,
         help="Species name (or Taxon ID)"
     )
@@ -66,9 +66,9 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    
+
     species_taxonomy = Taxonomy.get_taxonomy(args.species)
-    
+
     helixer_lineage = species_taxonomy.get_tool_lineage('Helixer', HELIXER_LINEAGES)
 
     with open(HELIXER_LINEAGE_OUTFILE, "w") as fout:

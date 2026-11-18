@@ -28,15 +28,15 @@ record Samplesheet {
     fasta: Path
     species: String
     gff: Path?
-    supplied_short_read_bams: Set<Path>
-    supplied_short_reads: Set<Record>
-    supplied_long_reads: Set<Record>
+    supplied_short_read_bams: List<Path>
+    supplied_short_reads: List<Record>
+    supplied_long_reads: List<Record>
     supplied_short_read_sra_ids: List<String>
     supplied_long_read_sra_ids: List<String>
-    training_proteins: Set<Path>
+    training_proteins: List<Path>
     mmseqs_db: String
-    tsebra_gtfs: Set<Path>
-    tsebra_hintsfiles: Set<Path>
+    tsebra_gtfs: List<Path>
+    tsebra_hintsfiles: List<Path>
 }
 
 
@@ -47,9 +47,9 @@ workflow GENOMEANNOTATION {
 
     main:
 
-    // only a subset of structural annotator can use RNAseq data 
+    // only a subset of structural annotator can use RNAseq data
     def structural_annotator_needing_rnaseq = ['braker3']
-    // only a subset of structural annotator can use extrinsic protein data 
+    // only a subset of structural annotator can use extrinsic protein data
     def structural_annotator_needing_proteins = ['braker3']
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -78,7 +78,7 @@ workflow GENOMEANNOTATION {
 
     if ( params.structural_annotator in structural_annotator_needing_rnaseq || params.force_prepare_rnaseq ){
 
-        ch_prepared_rnaseq_data = PREPARE_RNASEQ_DATA( 
+        ch_prepared_rnaseq_data = PREPARE_RNASEQ_DATA(
             ch_main,
             params.skip_fastqc,
             params.skip_fastqc_raw,
@@ -114,13 +114,13 @@ workflow GENOMEANNOTATION {
         ch_main = ch_main.join( ch_proteins, by: 'id', remainder: true )
 
     }
-    
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // STRUCTURAL ANNOTATION
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     if ( !params.skip_structural_annotation ) {
-    
+
         ch_structural_annotation = STRUCTURAL_ANNOTATION (
             ch_main,
             params.structural_annotator,
@@ -159,12 +159,12 @@ workflow GENOMEANNOTATION {
     // At this step, cleaned structural annotations are under the 'gff' key
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // MAKE PROTEOME 
+    // MAKE PROTEOME
     // (ONLY IF FUNCTIONAL ANNOTATION OR QUALITY CONTROLS ARE TO BE RUN)
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     if ( !(params.skip_functional_annotation && params.skip_qc) ) {
-    
+
         ch_extracted_sequences = EXTRACT_SEQUENCES(
             ch_main.filter { rec -> rec.gff != null }
         )

@@ -18,7 +18,7 @@ run_modules:
   - custom_content
   - busco
   - hisat2
-  - star 
+  - star
   - samtools
   - fastp
   - fastqc
@@ -43,8 +43,8 @@ module_order:
       name: "BUSCO on the genome"
       generalstats: false
       path_filters:
-        - "*.genome.busco.txt" 
-  
+        - "*.genome.busco.txt"
+
   - custom_content
   - samtools:
       generalstats: false
@@ -56,7 +56,7 @@ module_order:
       generalstats: false
   - umitools/extract:
       generalstats: false
-      
+
   - fastqc:
       name: "FastQC [ Raw short reads ]"
       generalstats: false
@@ -84,38 +84,32 @@ module_order:
       info: "This section of the report shows FastQC results for long reads after filtering / trimming."
       path_filters:
         - "*.long_reads.cleaned.fastqc.zip"
-         
-  - seqkit
 
+  - seqkit
 
 custom_plot_config:
   busco:
     cpswitch: true
     cpswitch_c_active: true
-   
 
 section_comments:
   general_stats: "Main quality controls at a glance"
   busco: "BUSCO results of the final proteome and intermediate / alternative proteomes, compared to the genome"
   samtools: "Mapping statistics for short / long reads mapped to the genome"
-    
 
 remove_sections:
   - fastp-insert-size
   - fastp-seq-quality
   - fastp-seq-content-gc
-  - fastp-seq-content-n 
-
+  - fastp-seq-content-n
 
 sample_names_replace_regex: True
 sample_names_replace:
-  "(.*)\\.reference.proteins.busco": "\\1" 
-  "(.*)\\.other.proteins.busco": "\\1" 
-  "(.*)\\.genome.busco": "\\1" 
-
+  "(.*)\\.reference.proteins.busco": "\\1"
+  "(.*)\\.other.proteins.busco": "\\1"
+  "(.*)\\.genome.busco": "\\1"
 
 custom_data:
-
   with_isoforms_mrna_gff_stats:
     parent_id: gff_stats
     parent_name: "GFF statistics"
@@ -170,29 +164,28 @@ custom_data:
     no_violin: true
     plot_type: "table"
 
-
 sp:
   busco:
     fn: "*.busco.txt"
   samtools/idxstats:
-    fn: '*.idxstats'
+    fn: "*.idxstats"
   samtools/flagstat:
-    fn: '*.flagstat'
+    fn: "*.flagstat"
   samtools/stats:
-    fn: '*.stats'
+    fn: "*.stats"
   hisat2:
-    fn: '*.hisat2.summary.log'
+    fn: "*.hisat2.summary.log"
   star:
-    fn: '*Log.final.out'
+    fn: "*Log.final.out"
   fastp:
-    fn: '*.fastp.json'
+    fn: "*.fastp.json"
   umitools/extract:
-    fn: '*.umi_extract.log'
+    fn: "*.umi_extract.log"
   fastqc/zip:
     fn: "*.fastqc.zip"
   seqkit/stats:
-    fn: '*.seqkit_stats.tsv'
-    
+    fn: "*.seqkit_stats.tsv"
+
   with_isoforms_mrna_gff_stats:
     fn: "*_with_isoforms_mrna_gff_stats.csv"
   without_isoforms_mrna_gff_stats:

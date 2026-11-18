@@ -31,8 +31,8 @@
 
 The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes data in multiple distinct steps.
 
->[!TIP]
->Note: Except for data preparation and reporting, all steps are optional. For example, you can use a `gff` file from a previous run (or another tool) and proceed directly to sequence extraction (proteome + CDS), functional annotation, and quality control.
+> [!TIP]
+> Note: Except for data preparation and reporting, all steps are optional. For example, you can use a `gff` file from a previous run (or another tool) and proceed directly to sequence extraction (proteome + CDS), functional annotation, and quality control.
 
 #### 1. Data preparation (mandatory)
 
@@ -48,8 +48,8 @@ Some structural annotators, such as **BRAKER**, require genome softmasking. The 
 - **Red**: A fast but less accurate repeat masker, relying solely on genome sequence. Extremely fast.
 - **earlGrey**: A highly accurate repeat masker that uses a custom Dfam database tailored to the closest available clade of the provided species. Slow to very slow.
 
->[!NOTE]
->earlGrey requires users to download the relevant portion of the Dfam database. **nf-core/genomeannotation** automates this process using a custom multithreaded download script based on the **famdb** package.
+> [!NOTE]
+> earlGrey requires users to download the relevant portion of the Dfam database. **nf-core/genomeannotation** automates this process using a custom multithreaded download script based on the **famdb** package.
 
 #### 3. Preparation of RNA-seq data (optional)
 
@@ -65,14 +65,14 @@ Users can choose between multiple structural annotators:
 - **Helixer**
 - **Metaeuk**
 
->[!NOTE]
->For technical reasons, **BRAKER4** is not yet available in **nf-core/genomeannotation**. We are actively working to overcome these limitations.
+> [!NOTE]
+> For technical reasons, **BRAKER4** is not yet available in **nf-core/genomeannotation**. We are actively working to overcome these limitations.
 
->[!NOTE]
->**Metaeuk** should be chosen only for small eurakyotic organisms.
+> [!NOTE]
+> **Metaeuk** should be chosen only for small eurakyotic organisms.
 
->[!WARNING]
->**Helixer** relies on deep learning models, so inference is significantly faster when run on GPUs rather than CPUs.
+> [!WARNING]
+> **Helixer** relies on deep learning models, so inference is significantly faster when run on GPUs rather than CPUs.
 
 #### 5. Annotation post-processing (optional)
 
@@ -101,15 +101,15 @@ Quality controls are performed using:
 
 **nf-core/genomeannotation** uses **MultiQC** to generate a dedicated QC report for each annotated genome.
 
-
 ## Usage
 
 > [!NOTE]
-> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/get_started/environment_setup/overview) on how to set-up Nextflow. 
+> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/get_started/environment_setup/overview) on how to set-up Nextflow.
 
 ### Test run
 
 Make sure to [test your setup](https://nf-co.re/docs/get_started/run-your-first-pipeline) with `-profile test` before running the workflow on actual data:
+
 ```bash
 nextflow run nf-core/genomeannotation -profile <PROFILE (ex: docker)>,test --outdir <OUTDIR>
 ```
@@ -132,8 +132,7 @@ nextflow run nf-core/genomeannotation \
 ```
 
 > [!WARNING]
->For certain tools, such as **BRAKER3**, the `conda` profile is not supported in this pipeline. We recommend using `apptainer`, `singularity` or `docker` instead.
-
+> For certain tools, such as **BRAKER3**, the `conda` profile is not supported in this pipeline. We recommend using `apptainer`, `singularity` or `docker` instead.
 
 > [!WARNING]
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/running/run-pipelines#using-parameter-files).
@@ -176,4 +175,3 @@ You can cite the `nf-core` publication as follows:
 > Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
 >
 > _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).
-

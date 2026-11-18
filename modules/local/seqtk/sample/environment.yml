@@ -5,4 +5,4 @@ channels:
   - bioconda
 dependencies:
   - bioconda::seqtk=1.4
-  - conda-forge::pigz=2.8 
+  - conda-forge::pigz=2.8

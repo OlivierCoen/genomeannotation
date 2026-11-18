@@ -12,7 +12,7 @@ process MMSEQS_CREATEDB {
     input:
         record(
             id: String,
-            sequences: Set<Path>
+            sequences: List<Path>
         )
 
     stage:

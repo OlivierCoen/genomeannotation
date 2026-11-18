@@ -19,7 +19,7 @@ record Input {
 }
 
 def addGFFToIntermediateAnnotations( ch_input ){
-    return ch_input.map { rec -> 
+    return ch_input.map { rec ->
         def intermediate_annotations = rec.intermediate_annotations + [rec.gff]
         rec + record(intermediate_annotations: intermediate_annotations)
     }
@@ -41,20 +41,20 @@ workflow CLEAN_ANNOTATION {
 
     // storing the current uncleaned annotation in the list of intermediate annotations
     // storing the reference gff too (if provided)
-    ch_input = ch_input.map { rec -> 
+    ch_input = ch_input.map { rec ->
         if ( rec.reference_gff ) {
             rec + record(intermediate_annotations: [rec.structural_annotation, rec.reference_gff])
         } else {
             rec + record(intermediate_annotations: [rec.structural_annotation])
         }
     }
-                
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // MANDATORY CLEANUP
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     // remove redundant entries and convert all GTFs / GFFs to GFFs
-    ch_out = AGAT_CONVERT_TO_GFF ( 
+    ch_out = AGAT_CONVERT_TO_GFF (
         ch_input.map { rec -> record(id: rec.id, gxf: rec.structural_annotation)}
     )
     ch_input = ch_input.join( ch_out, by: 'id' )

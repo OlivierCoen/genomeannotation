@@ -34,5 +34,5 @@ process OMARK_OMAMERSEARCH {
         ${args}
     """
 
-   
+
 }

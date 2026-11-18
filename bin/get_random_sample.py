@@ -49,4 +49,3 @@ if __name__ == "__main__":
     logger.info(f"Writing output file {args.outfile}")
     with open(args.outfile, 'w+') as fout:
         fout.writelines(sampled_items)
-        

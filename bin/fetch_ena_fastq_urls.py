@@ -337,15 +337,15 @@ def main():
 
         logger.info("Checking accessions")
         check_accession(args.accession)
-    
+
         logger.info("Fetching ENA FTP URLs")
         ena_metadata_fields = ["run_accession", "fastq_ftp"]
         ena_fetcher = ENAMetadataFetcher(ena_metadata_fields)
-    
+
         ena_table = ena_fetcher.open_experiment_table(args.accession)
         logger.info(f"Found {len(ena_table)} ENA entries")
         logger.info(ena_table)
-    
+
         logger.info("Writing FTP URLs to file")
         ftp_urls = [url for row in ena_table for url in row["fastq_ftp"].split(";")]
         with open(OUTFILE, "w") as fout:
@@ -354,7 +354,7 @@ def main():
     except AttributeError:
         logger.error("Not Fastq file could be downloaded")
         sys.exit(101)
-        
+
 
     logger.info("Done")
 

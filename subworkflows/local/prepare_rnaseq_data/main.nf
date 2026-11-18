@@ -25,7 +25,7 @@ record Input {
     supplied_short_read_bams: List<Path>
     supplied_long_read_bams: List<Path>
     supplied_short_read_sra_ids: List<String>
-    supplied_long_read_sra_ids: List<String>    
+    supplied_long_read_sra_ids: List<String>
     fasta: Path
     reference_gff: Path
 }
@@ -48,7 +48,7 @@ workflow PREPARE_RNASEQ_DATA {
     read_sampling_size: Float
     short_read_mapper: String
     ignore_existing_gff_for_mapping: Boolean
-    
+
 
     main:
 
@@ -58,7 +58,7 @@ workflow PREPARE_RNASEQ_DATA {
 
     if ( params.fetch_sra_rnaseq ) {
 
-        ch_sra_ids = FETCH_SRA_IDS( 
+        ch_sra_ids = FETCH_SRA_IDS(
             ch_input,
             nb_short_read_sra_datasets,
             nb_long_read_sra_datasets,
@@ -67,9 +67,9 @@ workflow PREPARE_RNASEQ_DATA {
             sra_random_seed
         )
         ch_input = ch_input.join( ch_sra_ids, by: 'id', remainder: true )
-        
+
     }
-    
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // MERGE USER SUPPLIED AND FETCHED SRA IDS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,13 +86,13 @@ workflow PREPARE_RNASEQ_DATA {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // DOWNLOAD READS FROM SRA / ENA
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                
-    ch_downloaded_reads = DOWNLOAD_READS( 
+
+    ch_downloaded_reads = DOWNLOAD_READS(
         ch_input,
         read_sampling_size
-    ) 
+    )
     ch_input = ch_input.join( ch_downloaded_reads, by: 'id', remainder: true )
-    
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // MERGE USER SUPPLIED AND DOWNLOAD READS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -152,7 +152,7 @@ workflow PREPARE_RNASEQ_DATA {
         def long_read_bams = supplied_long_read_bams + new_long_read_bams
         // adding the provenance of reads (short or long)
         // so that we can redispatch them again
-        rec + record( 
+        rec + record(
             short_read_bams: short_read_bams.collect { subrec -> subrec + record(type: 'short_reads') },
             long_read_bams: long_read_bams.collect   { subrec -> subrec + record(type: 'long_reads') }
         )
@@ -165,10 +165,10 @@ workflow PREPARE_RNASEQ_DATA {
     // PUT SHORT AND LONG READS TOGETHER
     // SORT UNSORTED BAMS, MAKE INDEX AND COMPUTE STATS FOR MULTIQC
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     ch_sorted_indexed = BAM_SORT_INDEX_STATS(
         ch_input_has_bams.map{ rec -> record(
-            id: rec.id, 
+            id: rec.id,
             fasta: rec.fasta,
             bams: rec.short_read_bams + rec.long_read_bams // putting short and long bams together
         ) }
@@ -177,16 +177,16 @@ workflow PREPARE_RNASEQ_DATA {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // SEPARATE SORTED SHORT AND LONG READS AGAIN
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     ch_input = ch_input
                 .join( ch_sorted_indexed, by: 'id')
-                .map{ rec -> 
+                .map{ rec ->
                     // separate rec.mappings in two parts and remove the 'type' entry
                     def short_read_mappings = rec.mappings.collect{ subrec -> subrec.type == 'short_reads' ? subrec.subMap(subrec.keySet() - ['type']) : null }.findAll()
                     def long_read_mappings = rec.mappings.collect{ subrec -> subrec.type == 'long_reads' ? subrec.subMap(subrec.keySet() - ['type']) : null }.findAll()
                     // return record without mappings entry and add instead the two separated records
                     rec.subMap(rec.keySet() - ['mappings']) + record(
-                        short_read_mappings: short_read_mappings, 
+                        short_read_mappings: short_read_mappings,
                         long_read_mappings: long_read_mappings
                         )
                 }
@@ -194,5 +194,5 @@ workflow PREPARE_RNASEQ_DATA {
 
     emit:
     ch_input
-    
+
 }

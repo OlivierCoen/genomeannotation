@@ -11,8 +11,8 @@ process GET_RANDOM_SAMPLE {
         'community.wave.seqera.io/library/python:3.14.7--629fbce4f44dac86' }"
 
     input:
-        record( 
-            taxid: String, 
+        record(
+            taxid: String,
             type: String,
             input_file: Path,
             nb_to_sample: Integer

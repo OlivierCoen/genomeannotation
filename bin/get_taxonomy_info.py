@@ -30,8 +30,8 @@ TAXID_LINEAGE_OUTFILE = "taxid_lineage.txt"
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--species", 
-        type=str, 
+        "--species",
+        type=str,
         required=True,
         help="Species name (or Taxon ID)"
     )
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     args = parse_args()
 
     species_taxonomy = Taxonomy.get_taxonomy(args.species)
-    
+
     with open(TAXID_OUTFILE, "w") as fout:
         fout.write(str(species_taxonomy.taxid))
 

@@ -11,21 +11,21 @@ process SRATOOLS_FASTERQDUMP {
 
     input:
         record(
-            id: String, 
+            id: String,
             sra: Path
         )
         ncbi_settings: Path
 
     output:
         record(
-            id: id, 
+            id: id,
             reads: files('*.fastq.gz')
-        )             
+        )
 
     topic:
-        tuple( "${task.process}", 'sratools', eval("fasterq-dump --version 2>&1 | grep -Eo '[0-9.]+'") ) >> 'versions' 
-        tuple( "${task.process}", 'pigz',     eval("pigz --version 2>&1 | sed 's/pigz //g'") )           >> 'versions'  
-   
+        tuple( "${task.process}", 'sratools', eval("fasterq-dump --version 2>&1 | grep -Eo '[0-9.]+'") ) >> 'versions'
+        tuple( "${task.process}", 'pigz',     eval("pigz --version 2>&1 | sed 's/pigz //g'") )           >> 'versions'
+
     script:
     def args = task.ext.args ?: ''
     def args2 = task.ext.args2 ?: ''

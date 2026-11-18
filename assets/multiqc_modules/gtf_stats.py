@@ -39,12 +39,12 @@ class MultiqcModule(BaseMultiqcModule):
 
         # Quast Stats Table
         self.add_section(
-            name="Assembly Statistics", 
-            anchor="quast-stats", 
+            name="Assembly Statistics",
+            anchor="quast-stats",
             plot=self.quast_table()
         )
-       
-       
+
+
 
     def parse_stats(self, f):
         with open(f, "r") as f:

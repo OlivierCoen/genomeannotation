@@ -52,7 +52,7 @@ def parse_args():
 def parse_alignment(bam_file: Path, single_end: bool, min_mapq: int, unique_only: bool) -> tuple[int, int]:
     nb_same_strand = nb_opposite_strand = 0
     nb_total = nb_skipped_unmapped = nb_skipped_secondary = nb_skipped_suppl = nb_skipped_low_qual = 0
-    
+
     with pysam.AlignmentFile(bam_file, "rb") as bam:
         for read in bam:
             nb_total += 1
@@ -96,7 +96,7 @@ def parse_alignment(bam_file: Path, single_end: bool, min_mapq: int, unique_only
     logger.info(f"# secondary (skipped): {nb_skipped_secondary}")
     logger.info(f"# supplementary (skipped): {nb_skipped_suppl}")
     logger.info(f"# low quality (skipped): {nb_skipped_low_qual}")
-                
+
     return nb_same_strand, nb_opposite_strand
 
 
@@ -109,12 +109,12 @@ def parse_alignment(bam_file: Path, single_end: bool, min_mapq: int, unique_only
 def main():
 
     args = parse_args()
-    
+
     nb_same_strand, nb_opposite_strand = parse_alignment(args.bam, args.single_end, args.min_mapq, args.unique_only)
 
     total = nb_same_strand + nb_opposite_strand
     logger.info(f"# total kept for strandedness inference: {total}")
-    
+
     if total == 0:
         logger.error("No spliced reads with an XS tag found. Unknown strandedness.")
         strandedness = Stranded.UNKNOWN
@@ -122,7 +122,7 @@ def main():
     else:
         logger.info(f"# of read1 same strand as transcript:     {nb_same_strand} ({100 * nb_same_strand / total:.1f}%)")
         logger.info(f"# of read1 opposite strand to transcript: {nb_opposite_strand} ({100 * nb_opposite_strand / total:.1f}%)")
-    
+
         if nb_same_strand / total >= 0.9:
             verdict = "forward-stranded (ISF/SF) -> hisat2 --rna-strandness FR (paired) / F (single-end)"
             strandedness = Stranded.FORWARD
@@ -132,12 +132,12 @@ def main():
         else:
             verdict = "unstranded (IU/U) -> omit --rna-strandness"
             strandedness = Stranded.UNSTRANDED
-            
+
         logger.info(f"Verdict: {verdict}")
 
     with open(OUTFILE, 'w') as fout:
         fout.write(strandedness.value)
-        
+
 
 if __name__ == "__main__":
     main()

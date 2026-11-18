@@ -1,7 +1,7 @@
 nextflow.enable.types = true
 
 process BUSCO_BUSCO {
-    
+
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
@@ -47,7 +47,7 @@ process BUSCO_BUSCO {
     def bbtools_memory = bbtools_memory_preferred > bbtools_memory_minimum ? "${bbtools_memory_preferred.toGiga()}g" : "${bbtools_memory_minimum.toMega()}m"
     """
     export BUSCO_BBTOOLS_MEMORY=${bbtools_memory}
-    
+
     # Fix Augustus for Apptainer
     ENV_AUGUSTUS=/opt/conda/etc/conda/activate.d/augustus.sh
     set +u
@@ -90,7 +90,7 @@ process BUSCO_BUSCO {
     # clean up
     rm -rf "\$INPUT_SEQS"
     rm -fr ${intermediate_files.join(' ')}
-    
+
     # Move files to avoid staging/publishing issues
     mv ${prefix}-busco/batch_summary.txt ${prefix}-busco.batch_summary.txt
 

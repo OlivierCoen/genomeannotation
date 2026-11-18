@@ -1192,4 +1192,4 @@ if __name__ == "__main__":
         # to devnull to avoid another BrokenPipeError at shutdown
         devnull = os.open(os.devnull, os.O_WRONLY)
         os.dup2(devnull, sys.stdout.fileno())
-        sys.exit(1)  # Python exits with error code 1 on EPIPE  
+        sys.exit(1)  # Python exits with error code 1 on EPIPE

@@ -20,7 +20,7 @@ workflow COMPLEMENT_ANNOTATION {
     take:
     ch_input: Channel<Input>
     complementation_use_ref_as_template: Boolean
-    
+
     main:
 
     // ----------------------------------------------------------
@@ -36,24 +36,24 @@ workflow COMPLEMENT_ANNOTATION {
     ch_to_complement = ch_to_complement.map { rec ->
         if (complementation_use_ref_as_template) {
             record(
-                id: rec.id, 
-                ref_gff: rec.reference_gff, 
+                id: rec.id,
+                ref_gff: rec.reference_gff,
                 other_gff: rec.structural_annotation
             )
         } else {
             record(
-                id: rec.id, 
-                ref_gff: rec.structural_annotation, 
+                id: rec.id,
+                ref_gff: rec.structural_annotation,
                 other_gff: rec.reference_gff
-            ) 
+            )
         }
     }
 
     ch_complemented = AGAT_SPCOMPLEMENTANNOTATIONS( ch_to_complement )
 
-    ch_complemented = ch_to_complement.join( 
-        ch_complemented.map{ rec -> record(id: rec.id, structural_annotation: rec.gff)}, 
-        by: 'id' 
+    ch_complemented = ch_to_complement.join(
+        ch_complemented.map{ rec -> record(id: rec.id, structural_annotation: rec.gff)},
+        by: 'id'
     )
 
 

@@ -16,13 +16,13 @@ process GET_ORTHODB_CLADE_PROTEINS {
             species: String,
             taxid_lineage: String
         )
-        
-    output: 
+
+    output:
         record(
             species: species,
             orthodb_proteins: file("*.orthodb.faa.gz")
         )
-        
+
 
     topic:
         tuple( "${task.process}", 'python', eval("python3 --version | sed 's/Python //'") )               >> 'versions'

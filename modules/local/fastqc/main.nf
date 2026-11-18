@@ -11,7 +11,7 @@ process FASTQC {
 
     input:
         record(
-            id: String, 
+            id: String,
             read_id: String,
             reads: List<Path>
         )
@@ -27,12 +27,12 @@ process FASTQC {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix
-    
+
     // Make list of old name and new name pairs to use for renaming in the bash while loop
     // NOTE: file(*) were added to comply with the nextflow linter...
-    def old_new_pairs = reads.size() == 1 ? 
-        [[reads[0], file("${prefix}.${reads[0].extension}")]] : 
-        reads.withIndex().collect { read_file, index -> [file(read_file), file("${prefix}_${index + 1}.${read_file.extension}")] }.toList() 
+    def old_new_pairs = reads.size() == 1 ?
+        [[reads[0], file("${prefix}.${reads[0].extension}")]] :
+        reads.withIndex().collect { read_file, index -> [file(read_file), file("${prefix}_${index + 1}.${read_file.extension}")] }.toList()
     def rename_to = old_new_pairs*.join(' ').join(' ')
     def renamed_files = old_new_pairs.collect { item -> item[1] }.toList().join(' ')
 
@@ -49,7 +49,7 @@ process FASTQC {
     printf "%s %s\\n" ${rename_to} | while read old_name new_name; do
         [ -f "\${new_name}" ] || ln -s \$old_name \$new_name
     done
-        
+
     fastqc \\
         ${args} \\
         --threads ${task.cpus} \\

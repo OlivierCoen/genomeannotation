@@ -37,7 +37,7 @@ workflow LONG_READ_PREPARATION {
     main:
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // EXTRACT READS 
+    // EXTRACT READS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // make channel containing one pair of fastq files (or one single fastq file in case of single end)
@@ -57,7 +57,7 @@ workflow LONG_READ_PREPARATION {
     // ---------------------------------------------------------------------
 
     if ( !skip_fastqc && !skip_fastqc_raw ) {
-        FASTQC_RAW ( 
+        FASTQC_RAW (
             ch_reads.map { rec -> record(id: rec.id, read_id: rec.read_id, reads: [rec.fastq]) }
         )
     }
@@ -69,18 +69,18 @@ workflow LONG_READ_PREPARATION {
     if ( !skip_long_read_cleaning ) {
 
         ch_cleaned_reads = FASTPLONG( ch_reads )
-        
-        ch_cleaned_reads = ch_cleaned_reads.filter { rec -> 
+
+        ch_cleaned_reads = ch_cleaned_reads.filter { rec ->
             if ( rec.fastq == null ) {
                 log.warn("No long read left after short read filtering for ${rec.read_id} (sample ${rec.id})")
             }
             rec.fastq != null
         }
-        
+
         ch_reads = ch_reads.join(ch_cleaned_reads, by: 'read_id')
-    
+
         if ( !skip_fastqc && !skip_fastqc_cleaned ) {
-            FASTQC_CLEANED ( 
+            FASTQC_CLEANED (
                 ch_reads.map { rec -> record(id: rec.id, read_id: rec.read_id, reads: [rec.fastq]) }
             )
         }

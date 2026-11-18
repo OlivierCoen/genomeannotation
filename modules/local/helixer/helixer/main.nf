@@ -42,7 +42,7 @@ process HELIXER_HELIXER {
     }
     """
     mkdir tmp
-    
+
     Helixer.py \\
         --fasta-path $fasta \\
         --lineage $lineage \\

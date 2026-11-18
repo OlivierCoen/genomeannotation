@@ -11,4 +11,3 @@
           R2: tests/test_data/data/RNAseq.2.fq.gz
   training_proteins:
     - https://raw.githubusercontent.com/Gaius-Augustus/BRAKER/master/example/proteins.fa
-

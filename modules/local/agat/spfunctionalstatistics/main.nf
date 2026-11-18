@@ -11,11 +11,11 @@ process AGAT_SPFUNCTIONALSTATISTICS {
 
     input:
         record(
-            id: String, 
-            gff: Path, 
+            id: String,
+            gff: Path,
             genome_size: Integer?
         )
-    
+
     topic:
         tuple(id, files("*.csv")) >> 'agat_functs_tats_multiqc'
         tuple("${task.process}", 'agat', eval("agat_sp_functional_statistics.pl -h | sed -n 's/.*(AGAT) - Version: \\(.*\\) .*/\\1/p'")) >> 'versions'

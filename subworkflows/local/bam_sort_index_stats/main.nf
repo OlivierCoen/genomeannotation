@@ -16,7 +16,7 @@ record Bam {
 record Input {
     id: String
     fasta: Path
-    bams: Set<Bam>
+    bams: List<Bam>
 }
 
 workflow BAM_SORT_INDEX_STATS {
@@ -38,7 +38,7 @@ workflow BAM_SORT_INDEX_STATS {
     // ------------------------------------------------------------------------------------
     // CHECK IF BAMS ARE SORTED
     // ------------------------------------------------------------------------------------
-   
+
     ch_bam = ch_input.flatMap { rec ->
         rec.bams.collect{ subrec ->
             record(
@@ -60,10 +60,10 @@ workflow BAM_SORT_INDEX_STATS {
 
     ch_user_supplied_bam = ch_bam.filter { rec -> rec.user_supplied == true }
     ch_new_bam           = ch_bam.filter { rec -> rec.user_supplied != true }
-    
+
     ch_index_out      = SAMTOOLS_INDEX( ch_new_bam )
     ch_sort_index_out = SAMTOOLS_SORT_INDEX( ch_user_supplied_bam )
-    
+
     ch_sorted_bam_bai = ch_index_out.mix( ch_sort_index_out )
 
     ch_bam_bai = ch_bam.join( ch_sorted_bam_bai, by: 'read_id' )

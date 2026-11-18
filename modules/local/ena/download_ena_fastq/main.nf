@@ -12,16 +12,16 @@ process DOWNLOAD_ENA_FASTQ {
 
     input:
         record(
-            id: String, 
+            id: String,
             ftp_urls: Path
         )
 
     output:
         record(
-            id: id, 
+            id: id,
             reads: files('*.fastq.gz')
         )
-        
+
     topic:
         tuple( "${task.process}", 'aria2', eval('aria2c --version | head -1 | cut -d" " -f3') ) >> 'versions'
 

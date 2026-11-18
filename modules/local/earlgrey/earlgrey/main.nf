@@ -10,7 +10,7 @@ process EARLGREY_EARLGREY {
         'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/1e/1e39da20f65a43bc87cf59e52c1946929e616dcb07085201aca2cc5fa67ab91a/data':
         'community.wave.seqera.io/library/earlgrey_findutils_gzip_h5py_pruned:0e1759983126c6d4' }"
 
-    
+
     input:
         record(
             id: String,
@@ -24,7 +24,7 @@ process EARLGREY_EARLGREY {
             id: id,
             softmasked: file("*.softmasked.fa.gz")
         )
-  
+
     topic:
         tuple('earlgrey', id, file("results/*_EarlGrey/*_Database/*-families.fa",  optional: true)) >> 'additional_results'
         tuple('earlgrey', id, file("results/*_EarlGrey/*_Database/*-families.stk", optional: true)) >> 'additional_results'
@@ -46,15 +46,15 @@ process EARLGREY_EARLGREY {
     # then and only then we can configure it and eventually use it...
 
     WORKDIR=\$PWD
-    
+
     # 1 - Copying binaries and software helper scripts / configurations
     BIN_DIR=\$(realpath "\${WORKDIR}/bin")
     SHARE_DIR=\$(realpath "\${WORKDIR}/share")
     mkdir \$BIN_DIR \$SHARE_DIR
-    
+
     CONDA_BIN_DIR=\$(dirname \$(which RepeatMasker))
     CONDA_SHARE_DIR=\$(dirname \$CONDA_BIN_DIR)/share
-   
+
     REPEATMODELER_CONDA_SHARE_DIR=\${CONDA_SHARE_DIR}/RepeatModeler
     REPEATMASKER_CONDA_SHARE_DIR=\${CONDA_SHARE_DIR}/RepeatMasker
     FAMDB_CONDA_SHARE_DIR=\$(find \$CONDA_SHARE_DIR -maxdepth 1 -type d -name "famdb-*" 2>/dev/null | sort -V | tail -n 1)
@@ -69,7 +69,7 @@ process EARLGREY_EARLGREY {
     ln -s \${SHARE_DIR}/RepeatModeler/RepeatModeler \${BIN_DIR}/RepeatModeler
     ln -s \${SHARE_DIR}/RepeatModeler/BuildDatabase \${BIN_DIR}/BuildDatabase
     ln -s \${SHARE_DIR}/RepeatMasker/RepeatMasker \${BIN_DIR}/RepeatMasker
-    
+
     # 3 - Symlink to the Dfam db
     mkdir -p \${SHARE_DIR}/RepeatMasker/Libraries
     cp -P ${dfam_db} \${SHARE_DIR}/RepeatMasker/Libraries/famdb
@@ -98,7 +98,7 @@ process EARLGREY_EARLGREY {
     # 7 - Modifying PATHS
     export PATH=\${BIN_DIR}:\${SHARE_DIR}/RepeatModeler:\${SHARE_DIR}/RepeatMasker:\${SHARE_DIR}/\${FAMDB_DIRNAME}:\$PATH
     export PERL5LIB="\${SHARE_DIR}/RepeatModeler:\${SHARE_DIR}/RepeatMasker:\${PERL5LIB:-}"
-    
+
     ################################################
     # UNGZIP FASTA IF NEEDED
     ################################################
@@ -112,7 +112,7 @@ process EARLGREY_EARLGREY {
     ################################################
 
     exit_code=0
-    
+
     run_earlGrey.sh \\
         -g $fasta_name \\
         -o results \\
@@ -124,7 +124,7 @@ process EARLGREY_EARLGREY {
 
     SOFTMASKED_OUTDIR="results/${prefix}_EarlGrey/${prefix}_summaryFiles"
     SOFTMASKED_OUTFILE=${prefix}.softmasked.fa
-    
+
     if [ \$exit_code -eq 0 ]; then
         if find \${SOFTMASKED_OUTDIR} -maxdepth 1 -name "*.softmasked.fasta" -print -quit | grep -q .; then
             echo "Found softmasked output, moving to \${SOFTMASKED_OUTFILE}"

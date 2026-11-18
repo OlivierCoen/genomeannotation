@@ -11,7 +11,7 @@ process EGGNOGMAPPER_EMAPPER {
 
     input:
         record(
-            id: String, 
+            id: String,
             fasta: Path,
             gff: Path
         )
@@ -36,7 +36,7 @@ process EGGNOGMAPPER_EMAPPER {
     def prefix          = task.ext.prefix               ?: "$id"
     def is_compressed   = fasta.extension == '.gz'      ? true                              : false
     def fasta_name      = is_compressed                 ? fasta.baseName                    : "$fasta"
-    // Note: 
+    // Note:
     // eggnogmapper db 5.0.2 ~ 48G
     // eggnogmapper db 7.0.0 ~ 42G
     """

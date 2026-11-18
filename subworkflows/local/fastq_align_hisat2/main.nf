@@ -79,10 +79,10 @@ workflow FASTQ_ALIGN_HISAT2 {
     // MAP READS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_aligned = HISAT2_ALIGN( 
+    ch_aligned = HISAT2_ALIGN(
         ch_input_with_index.join(ch_strandedness_inferred, by: 'read_id')
     )
-        
+
     emit:
     mapped = ch_input.join(ch_aligned, by: 'read_id')
 }

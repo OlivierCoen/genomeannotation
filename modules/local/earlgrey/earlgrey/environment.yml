@@ -6,5 +6,5 @@ dependencies:
   - conda-forge::findutils=4.10.0
   - conda-forge::gzip=1.14
   - conda-forge::h5py=3.16.0
-  - conda-forge::util-linux=2.42.2 
+  - conda-forge::util-linux=2.42.2
   - conda-forge::bc=1.07.1

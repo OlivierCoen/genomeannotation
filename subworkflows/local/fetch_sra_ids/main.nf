@@ -18,10 +18,10 @@ workflow FETCH_SRA_IDS {
     sra_max_size: String
     sra_allow_single_end: Boolean
     sra_random_seed: Integer
-    
+
     main:
 
-    ch_sra_id_files = GET_SRA_METADATA( 
+    ch_sra_id_files = GET_SRA_METADATA(
         ch_input.map { rec -> rec.taxid }.unique(),
         nb_short_read_sra_datasets,
         nb_long_read_sra_datasets,
@@ -37,22 +37,22 @@ workflow FETCH_SRA_IDS {
                                     .filter{ rec -> rec.short_read_sra_ids_file != null }
                                     .combine( channel.value( nb_short_read_sra_datasets ) )
                                     .map{ rec, nb_to_sample -> record(
-                                        taxid: rec.taxid, 
-                                        type: 'short_reads', 
+                                        taxid: rec.taxid,
+                                        type: 'short_reads',
                                         input_file: rec.short_read_sra_ids_file,
                                         nb_to_sample: nb_to_sample
                                     ) }
-                                    
+
     ch_long_read_files_to_sample = ch_sra_id_files
                                     .filter{ rec -> rec.long_read_sra_ids_file != null }
                                     .combine( channel.value( nb_long_read_sra_datasets ) )
                                     .map{ rec, nb_to_sample -> record(
-                                        taxid: rec.taxid, 
-                                        type: 'long_reads', 
+                                        taxid: rec.taxid,
+                                        type: 'long_reads',
                                         input_file: rec.long_read_sra_ids_file,
                                         nb_to_sample: nb_to_sample
                                     ) }
-                         
+
     ch_sampled_sra_id_files = GET_RANDOM_SAMPLE(
         ch_short_read_files_to_sample.mix( ch_long_read_files_to_sample ),
         sra_random_seed
@@ -67,14 +67,14 @@ workflow FETCH_SRA_IDS {
 
     ch_short_read_sra_ids = ch_short_read_sra_id_files
                             .map { rec -> record(
-                                taxid: rec.taxid, 
-                                fetched_short_read_sra_ids: rec.sampled.splitText().collect{ s -> s.strip() } 
+                                taxid: rec.taxid,
+                                fetched_short_read_sra_ids: rec.sampled.splitText().collect{ s -> s.strip() }
                             ) }
 
     ch_long_read_sra_ids = ch_long_read_sra_id_files
                             .map { rec -> record(
-                                taxid: rec.taxid, 
-                                fetched_long_read_sra_ids: rec.sampled.splitText().collect{ s -> s.strip() } 
+                                taxid: rec.taxid,
+                                fetched_long_read_sra_ids: rec.sampled.splitText().collect{ s -> s.strip() }
                             ) }
 
     ch_input = ch_input

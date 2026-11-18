@@ -88,9 +88,9 @@ def parse_args():
     parser.add_argument("--max-long-reads", required=True, dest="max_long_reads_data", type=int, help="Maximum number of short read sequencing data to fetch")
     parser.add_argument("--paired-only", dest="paired_only", action='store_true', help="For short reads, fetch only paired-end sequencing data")
     parser.add_argument("--max-size", dest="max_size", type=str, help="Maximum size (in Mb / Gb) for an experiment. Must end with 'Mb' or 'Gb'. Example: 10Mb / 2Gb")
-    
+
     return parser.parse_args()
-    
+
 
 
 class RateLimitException(Exception):
@@ -161,8 +161,8 @@ def parse_ids_from_xml(xml_string: str) -> list[str]:
     root = ET.fromstring(xml_string)
     # species taxon IDs are contained in <Id>...</Id> blocks
     return [
-        id_element.text 
-        for id_element in root.findall(".//Id") 
+        id_element.text
+        for id_element in root.findall(".//Id")
         if id_element.text is not None
     ]
 
@@ -199,7 +199,7 @@ def get_esearch_query(taxid: int, platform: Platform, paired_only: bool) -> str:
 def get_sra_ids(taxid: int, platform: Platform, paired_only: bool = False) -> list[str]:
     """
     Get list of SRA experiment IDs given a NCBI taxonomy ID.
-    Esearch returns experiments corresponding to all the NCBI TaxID underneath 
+    Esearch returns experiments corresponding to all the NCBI TaxID underneath
     the provided organism name
     :param organism_name: str
     :return: list of SRA experiment IDs
@@ -263,7 +263,7 @@ def parse_max_size(max_size: str) -> float:
     error_msg = f"Invalid max size: {max_size}. Must end with 'Mb' or 'Gb'. Example: 10Mb / 2.1Gb"
     try:
         if max_size.endswith('Mb'):
-            return 1e6 * float(max_size.replace('Mb', '')) 
+            return 1e6 * float(max_size.replace('Mb', ''))
         elif max_size.endswith('Gb'):
             return 1e9 * float(max_size.replace('Gb', ''))
         else:
@@ -289,7 +289,7 @@ def get_srrs(experiments: list[dict], max_size) -> list[dict]:
     else:
         filtered_experiments = experiments
     return [exp["EXPERIMENT"]["@accession"] for exp in filtered_experiments]
-    
+
 
 #####################################################
 #####################################################
@@ -331,19 +331,19 @@ if __name__ == "__main__":
     else:
         logger.info("Skipping long read data fetching")
         long_read_sra_raw_ids = []
-    
+
     #####################################################
-    # GETTING ADDITIONAL INFORMATION FOR FETCHED SRA EXPERIMENTS 
+    # GETTING ADDITIONAL INFORMATION FOR FETCHED SRA EXPERIMENTS
     #####################################################
 
     short_read_experiments = []
     if short_read_sra_raw_ids:
         short_read_experiments = fetch_sra_experiments(short_read_sra_raw_ids, read_type='short read')
-    
+
     long_read_experiments = []
     if long_read_sra_raw_ids:
         long_read_experiments = fetch_sra_experiments(long_read_sra_raw_ids, read_type='long read')
-    
+
     #####################################################
     # EXPORTING DATA
     #####################################################
@@ -353,7 +353,7 @@ if __name__ == "__main__":
         srrs = get_srrs(short_read_experiments, args.max_size)
         with open(SHORT_READ_SRA_IDS_OUTFILE, "w") as fout:
             fout.writelines([f"{srr}\n" for srr in srrs])
-    
+
         logger.info(f"Writing metadata of short read SRAs to {SHORT_READ_METADATA_OUTFILE}")
         with open(SHORT_READ_METADATA_OUTFILE, "w") as fout:
             json.dump(short_read_experiments, fout)
@@ -363,7 +363,7 @@ if __name__ == "__main__":
         srrs = get_srrs(long_read_experiments, args.max_size)
         with open(LONG_READ_SRA_IDS_OUTFILE, "w") as fout:
             fout.writelines([f"{srr}\n" for srr in srrs])
-    
+
         logger.info(f"Writing metadata of long read SRAs to {LONG_READ_METADATA_OUTFILE}")
         with open(LONG_READ_METADATA_OUTFILE, "w") as fout:
             json.dump(long_read_experiments, fout)

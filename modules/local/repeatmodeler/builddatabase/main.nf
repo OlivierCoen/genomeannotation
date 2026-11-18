@@ -14,10 +14,10 @@ process REPEATMODELER_BUILDDATABASE {
 
     output:
         record(id: id, db: files("${prefix}.*"))
-    
+
     topic:
         tuple( "${task.process}", 'repeatmodeler', eval("RepeatModeler --version | sed 's/RepeatModeler version //'") ) >> 'versions'
-        
+
     script:
     prefix = task.ext.prefix ?: "${id}"
     """

@@ -16,7 +16,7 @@ record Input {
     gff: Path
     busco_lineage: String
     proteome: Path
-    other_proteomes: Set<Path>
+    other_proteomes: List<Path>
 }
 
 workflow OMARK {
@@ -42,7 +42,7 @@ workflow OMARK {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // PREPARE OMARK RUN
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     ch_omamer_search_out = OMAMERSEARCH(
         ch_input.map { rec -> record(id: rec.id, fasta: rec.proteome) },
         ch_omark_db
@@ -58,7 +58,7 @@ workflow OMARK {
     // OMARK
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_omark_out = RUN_OMARK( 
+    ch_omark_out = RUN_OMARK(
         ch_input.map { rec -> record(id: rec.id, fasta: rec.proteome, omamer: rec.omamer, transcript_isoforms: rec.transcript_isoforms) },
         ch_omark_db
     )

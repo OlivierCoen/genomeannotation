@@ -27,15 +27,15 @@ GFF_COLUMNS = [
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--gff", 
+        "--gff",
         dest="annot_file",
-        required=True, 
+        required=True,
         help="Annotation file in GFF3"
     )
     parser.add_argument(
-        "--out", 
+        "--out",
         dest="outfile",
-        required=True, 
+        required=True,
         help="Output GFF3"
     )
     return parser.parse_args()
@@ -43,10 +43,10 @@ def parse_args():
 
 def parse_gff3(file: Path) -> pl.LazyFrame:
     return pl.scan_csv(
-        file, 
-        separator="\t", 
-        comment_prefix="#", 
-        has_header=False, 
+        file,
+        separator="\t",
+        comment_prefix="#",
+        has_header=False,
         new_columns=GFF_COLUMNS
     )
 
@@ -55,11 +55,11 @@ def parse_gff3(file: Path) -> pl.LazyFrame:
 def main():
 
     logger.info("Extracting transcript isoforms per gene")
-    
+
     args = parse_args()
 
     annot_lf = parse_gff3(args.annot_file)
-  
+
     (
     annot_lf
         .filter(pl.col("feature").is_in(["transcript", "mRNA"]))

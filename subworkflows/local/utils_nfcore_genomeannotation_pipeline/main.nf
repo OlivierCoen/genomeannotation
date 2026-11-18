@@ -251,7 +251,7 @@ def validateInputParameters(params) {
 def validateSamplesheet( ch_samplesheet ) {
     // if structural annotation is skipped, a gff must be provided for each sample in the samplesheet
     if (params.skip_structural_annotation) {
-        ch_samplesheet.map { rec -> 
+        ch_samplesheet.map { rec ->
             if (!rec.reference_gff) {
                 error("GFF not found for sample ${rec.id}. When skipping structural annotation, a GFF must be provided for each sample in the samplesheet")
             }
@@ -274,20 +274,20 @@ def validateSamplesheet( ch_samplesheet ) {
 
 // turning the map of fastq files into a list (all modules work with lists)
 def organiseShortReadFastqFiles( fastqs_list: List<Map<String, Path>>) {
-    return fastqs_list.withIndex().collect { fastq_map, index -> 
-        def reads = fastq_map.R2 ? [ fastq_map.R1, fastq_map.R2 ] : [ fastq_map.R1 ] 
+    return fastqs_list.withIndex().collect { fastq_map, index ->
+        def reads = fastq_map.R2 ? [ fastq_map.R1, fastq_map.R2 ] : [ fastq_map.R1 ]
         record(id: "user_short_reads_${index + 1}", reads: reads)
     }
 }
 
 def organiseLongReadFastqFiles( fastqs: List<Path> ) {
-    return fastqs.withIndex().collect { fastq, index -> 
+    return fastqs.withIndex().collect { fastq, index ->
         record(id: "user_long_reads_${index + 1}", fastq: fastq)
     }
 }
 
 def organiseBamFiles( bams: List<Path>, id_pattern: String ) {
-    return bams.withIndex().collect { bam, index -> 
+    return bams.withIndex().collect { bam, index ->
         record(read_id: "${id_pattern}_${index + 1}", bam: bam)
     }
 }
@@ -305,10 +305,10 @@ def parseSamplesheet() {
 
                     supplied_short_read_bams: meta.short_read_bams ? organiseBamFiles(meta.short_read_bams, 'user_short_read_bams') : [],
                     supplied_long_read_bams: meta.long_read_bams ? organiseBamFiles(meta.long_read_bams, 'user_long_read_bams') : [],
-                    
+
                     supplied_short_reads: meta.short_reads ? organiseShortReadFastqFiles(meta.short_reads) : [],
                     supplied_long_reads: meta.long_reads ? organiseLongReadFastqFiles(meta.long_reads) : [],
-                    
+
                     supplied_short_read_sra_ids: meta.sra?.short ?: [],
                     supplied_long_read_sra_ids: meta.sra?.long ?: [],
 
@@ -371,7 +371,7 @@ def sha256(Map map) {
             .join()
 }
 
-def buildCacheDirURI(process_name: String, args: Map){ 
+def buildCacheDirURI(process_name: String, args: Map){
     def workdir_name = "${process_name.tokenize(':')[-1].toLowerCase()}/${sha256(args)}"
     return workflow.workDir.resolve(workdir_name).toUriString()
 }
@@ -385,13 +385,13 @@ def getWorkflowConfigPaths(configKey: String){
         }
         return null   // findResults drops it
     }
-    
+
     if (config_paths_list.size() == 0) {
         return null
     } else {
-        def config_abs_paths = config_paths_list.collect { config_paths -> 
+        def config_abs_paths = config_paths_list.collect { config_paths ->
             config_paths.tokenize(',').collect{ config_path ->
-                workflow.launchDir.resolve(config_path).toUriString() 
+                workflow.launchDir.resolve(config_path).toUriString()
             }
         }.flatten()
         return config_abs_paths.join(',') // comma separated config files
@@ -401,4 +401,3 @@ def getWorkflowConfigPaths(configKey: String){
 def workflowHasResumeFlag() {
     return workflow.commandLine.tokenize(' ').contains('-resume')
 }
-

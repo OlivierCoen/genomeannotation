@@ -167,7 +167,7 @@ Supported formats:
 
 MISSING_FILE = """
 \tTaxon in Partition %s, Partition File Not Found
-\t      
+\t
 \tThis partition is available for download from Dfam and may
 \tbe installed in the %s directory.  Please see
 \t%s for more details."""

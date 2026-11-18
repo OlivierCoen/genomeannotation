@@ -6,4 +6,3 @@
       short_reads:
         - SRX10300987 # paired-end
         - DRX645493 # single-end
-    

@@ -25,7 +25,7 @@ process MINIMAP2_INDEX {
 
     topic:
         tuple("${task.process}", "minimap2", eval("minimap2 --version")) >> 'versions'
-        
+
     script:
     def args = task.ext.args ?: ''
     """

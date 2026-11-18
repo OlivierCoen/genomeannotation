@@ -6,5 +6,5 @@ channels:
 dependencies:
   - conda-forge::python=3.13.5
   - conda-forge::requests=2.32.4
-  - conda-forge::tenacity=9.1.2 
-  - conda-forge::xmltodict=0.14.2 
+  - conda-forge::tenacity=9.1.2
+  - conda-forge::xmltodict=0.14.2

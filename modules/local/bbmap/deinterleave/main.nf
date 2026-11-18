@@ -20,7 +20,7 @@ process BBMAP_DEINTERLEAVE {
             read_id: read_id,
             reads: files("*.deinterleaved.fastq.gz")
         )
-       
+
 
     topic:
         tuple("${task.process}", 'bbmap', eval('bbversion.sh | grep -v "Duplicate cpuset"')) >> 'versions'

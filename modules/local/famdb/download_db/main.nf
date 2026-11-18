@@ -18,7 +18,7 @@ process FAMDB_DOWNLOAD_DFAM {
             taxid: String,
             taxid_lineage: String
         )
-        
+
     output:
         record(
             taxid: taxid,
@@ -39,7 +39,7 @@ process FAMDB_DOWNLOAD_DFAM {
     ##################################################
     # DOWNLOADING DFAM ROOT FILE
     ##################################################
-    
+
     download_dfam_4.0.py \\
         --fetch-root \\
         --output-dir dfam \\
@@ -51,18 +51,18 @@ process FAMDB_DOWNLOAD_DFAM {
 
     # looping through the whole lineage of taxids, starting from the species
     # as soon as we found something in the Dfam db for this node, we break
-    
+
     IFS=',' read -ra taxids <<< "$taxid_lineage"
-    
+
     for lineage_txid in "\${taxids[@]}"; do
 
         echo "Searching data in Dfam database for taxid \$lineage_txid"
-        
+
         famdb.py \\
             -i dfam \\
             check "\$lineage_txid" \\
             > famdb_check.out 2>&1
-    
+
         if grep -q "No species found for search term" famdb_check.out; then
             echo "No data found for taxid \$lineage_txid"
             rm famdb_check.out
@@ -77,7 +77,7 @@ process FAMDB_DOWNLOAD_DFAM {
     ##################################################
     # DOWNLOADING DATA FOR THE SPECIES OF INTEREST
     ##################################################
-    
+
     download_dfam_4.0.py \\
         --famdb-check-output famdb_check.out \\
         --output-dir dfam \\

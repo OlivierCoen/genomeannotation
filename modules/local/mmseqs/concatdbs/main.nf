@@ -12,7 +12,7 @@ process MMSEQS_CONCATDBS {
     input:
         record(
             id: String,
-            mmseqs_dbs: Set<Path>
+            mmseqs_dbs: List<Path>
         )
 
     stage:

@@ -56,21 +56,21 @@ ATTRIBUTES_TO_PRESERVE = [
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--annot", 
+        "--annot",
         dest="annot_file",
-        required=True, 
+        required=True,
         help="Annotation file in GFF3"
     )
     parser.add_argument(
-        "--iprscan", 
+        "--iprscan",
         dest="iprscan_file",
-        required=True, 
+        required=True,
         help="InterProScan output GFF3"
     )
     parser.add_argument(
-        "--out", 
+        "--out",
         dest="outfile",
-        required=True, 
+        required=True,
         help="Output GFF3"
     )
     return parser.parse_args()
@@ -78,10 +78,10 @@ def parse_args():
 
 def parse_gff3(file: Path) -> pl.LazyFrame:
     return pl.scan_csv(
-        file, 
-        separator="\t", 
-        comment_prefix="#", 
-        has_header=False, 
+        file,
+        separator="\t",
+        comment_prefix="#",
+        has_header=False,
         new_columns=GFF_COLUMNS
     )
 
@@ -164,8 +164,8 @@ def parse_attributes_as_dicts(ipr_lf: pl.LazyFrame) -> pd.DataFrame:
     # parsing each list of attributes (one list per original row) into a dictionary
     parsed_attributes = [
         {
-            k: v 
-            for s in lst if "=" in s 
+            k: v
+            for s in lst if "=" in s
             for k, v in [s.split("=", 1)]
         }
         for lst in ipr_lf.select("attribute_list").collect().to_series().to_list()
@@ -207,19 +207,19 @@ def get_go_terms(parsed_attr_df: pl.DataFrame):
 def merge_new_attributes(transcript_attr_lf: pl.LazyFrame, formated_ipr_attr_df: pl.DataFrame) -> pl.LazyFrame:
 
     base_cols = transcript_attr_lf.collect_schema().names()
-    
+
     merged_lf = transcript_attr_lf.join(
-        formated_ipr_attr_df.lazy(), 
+        formated_ipr_attr_df.lazy(),
         left_on="ID",
-        right_on="seqname", 
+        right_on="seqname",
         how="left",
         suffix="_ipr",
     )
 
     all_cols = merged_lf.collect_schema().names()
-    
+
     attribute_cols = [col for col in base_cols if col != "index" ]
-   
+
     # merging original values and InterProScan values
     for col in attribute_cols:
         ipr_col = f'{col}_ipr'
@@ -242,14 +242,14 @@ def merge_new_attributes(transcript_attr_lf: pl.LazyFrame, formated_ipr_attr_df:
                     )
                     .drop(ipr_col)
                 )
-                
+
     # making list of attribute columns in order of COMMON_ATTRIBUTE_KEYS followed by any remaining columns
     final_attribute_cols = [
         col for col in COMMON_ATTRIBUTE_KEYS if col in attribute_cols
     ] + [
         col for col in attribute_cols if col not in COMMON_ATTRIBUTE_KEYS
     ]
-    
+
     # formating new attribute column from individual columns
     merged_lf = merged_lf.with_columns(pl.lit("").alias("attribute"))
     for col in final_attribute_cols:
@@ -287,7 +287,7 @@ def add_new_attributes_to_annotation(annot_lf: pl.LazyFrame, merged_lf: pl.LazyF
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    
+
     args = parse_args()
 
     annot_header_lines = read_gff3_header(args.annot_file)
@@ -299,7 +299,7 @@ def main():
     ####################################################################
     # PARSING ANNOTATION
     ####################################################################
-    
+
     annot_lf = annot_lf.with_row_index("index")
 
     # putting transcript attributes into separate columns
@@ -320,7 +320,7 @@ def main():
 
     if "ID" not in unique_attribute_keys:
         raise ValueError("ID attribute not found in transcript attributes")
-    
+
     transcript_attr_lf = (
         annot_lf
         .filter(pl.col("feature") == "transcript")
@@ -337,7 +337,7 @@ def main():
     ####################################################################
     # PARSING INTERPROSCAN OUTPUT
     ####################################################################
-    
+
     # removing weird stuff at the end of the file and excluded sources
     EXCLUDED_SOURCES = ["MobiDB-lite"]
     ipr_lf = (
@@ -351,7 +351,7 @@ def main():
     ipr_lf = ipr_lf.with_columns(pl.col("source").replace(TO_REPLACE))
 
     ipr_lf = complement_interproscan_attributes(ipr_lf)
-    
+
     # parsing each list of attributes (one list per original row) into a dictionary
     ipr_attr_df = parse_attributes_as_dicts(ipr_lf)
     print(ipr_attr_df)
@@ -359,7 +359,7 @@ def main():
     # Names and aliases
     logger.info("Processing Names and Aliases...")
     formated_ipr_attr_df = get_names_and_aliases(ipr_attr_df)
-    
+
     if "Ontology_term" in ipr_attr_df.columns:
         logger.info("Processing Ontology_term (GO terms)...")
         goterms_df = get_go_terms(ipr_attr_df)
@@ -371,16 +371,16 @@ def main():
         dbxrefs_df = get_dbxrefs(ipr_attr_df)
         formated_ipr_attr_df = formated_ipr_attr_df.join(dbxrefs_df, on="seqname", how="left")
         del dbxrefs_df
-    
+
     del ipr_attr_df
-    
+
     ####################################################################
     # MERGING WITH STRUCTURAL GFF3
     ####################################################################
 
     logger.info("Merging original attributes with InterProScan attributes...")
     merged_lf = merge_new_attributes(transcript_attr_lf, formated_ipr_attr_df)
-    
+
     logger.info("Merging original annotation with table containing new attributes...")
     final_annot_lf = add_new_attributes_to_annotation(annot_lf, merged_lf)
 

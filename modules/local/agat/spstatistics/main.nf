@@ -11,8 +11,8 @@ process AGAT_SPSTATISTICS {
 
     input:
         record(
-            id: String, 
-            gff: Path, 
+            id: String,
+            gff: Path,
             genome_size: Integer?
         )
 

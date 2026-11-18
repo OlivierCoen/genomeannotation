@@ -34,7 +34,7 @@ process RED {
     ################################################
     # DECOMPRESSING INPUT FASTA IF NEEDED
     ################################################
-    
+
     if [ "${is_compressed}" == "true" ]; then
         gzip -c -d ${fasta} > input/genome.fa
     else

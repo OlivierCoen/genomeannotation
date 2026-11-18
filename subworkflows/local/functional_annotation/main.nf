@@ -44,7 +44,7 @@ workflow FUNCTIONAL_ANNOTATION {
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         ch_eggnog_db = EGGNOGMAPPER_DOWNLOADDB( eggnog_mapper_mode )
-    
+
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // RUN EGGNOG MAPPER
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -63,40 +63,40 @@ workflow FUNCTIONAL_ANNOTATION {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // INTERPROSCAN
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     if ( "interproscan6" in functional_annotators || "interproscan5" in functional_annotators ) {
-    
+
         if ( "interproscan6" in functional_annotators ) {
-    
+
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // RUNNING INTERPROSCAN 6
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-            ch_interproscan_out = INTERPROSCAN6( 
+            ch_interproscan_out = INTERPROSCAN6(
                 ch_input.map { rec -> record(id: rec.id, fasta: rec.proteome) }
-            )  
-        
-    
+            )
+
+
         } else { // interproscan5
-    
+
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // IF INTERPROSCAN DB WAS NOT PROVIDED, DOWNLOADING IT
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            
+
             if ( interproscan5_db ) {
                 interproscan_db = channel.fromPath( interproscan5_db, checkExists: true )
             } else {
                 interproscan_db = INTERPROSCAN5_DOWNLOADDB( channel.value( interproscan5_db_url ) )
             }
-    
+
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // RUN INTERPROSCAN 5
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-            ch_interproscan_out = INTERPROSCAN5( 
-                ch_input.map { rec -> record(id: rec.id, fasta: rec.proteome) }, 
+
+            ch_interproscan_out = INTERPROSCAN5(
+                ch_input.map { rec -> record(id: rec.id, fasta: rec.proteome) },
                 interproscan_db
-            )  
+            )
 
         }
 
@@ -105,12 +105,12 @@ workflow FUNCTIONAL_ANNOTATION {
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // COMPLEMENT EXISTING GFF WITH OUTPUT FROM INTERPROSCAN
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-            ch_input = ch_input.join( 
-                ch_interproscan_out.map { rec -> record(id: rec.id, interproscan_gff: rec.gff) }, 
-                by: 'id' 
+
+            ch_input = ch_input.join(
+                ch_interproscan_out.map { rec -> record(id: rec.id, interproscan_gff: rec.gff) },
+                by: 'id'
             )
-            
+
             ch_complemented = COMPLEMENT_GFF_WITH_INTERPROSCAN_GFF( ch_input )
             ch_input = ch_input.join( ch_complemented, by: 'id' )
 

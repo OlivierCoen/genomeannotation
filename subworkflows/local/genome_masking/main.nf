@@ -55,26 +55,26 @@ workflow GENOME_MASKING {
     } else if ( genome_masker == "earlgrey" ) {
 
         if ( dfam_db ) {
-        
+
             ch_dfam_db = channel.fromPath( dfam_db, checkIfExists: true )
 
             ch_input = ch_input
                         .combine( ch_dfam_db )
                         .map { rec, db -> rec + record(dfam_db: db) }
-            
+
         } else {
-        
+
             // downloading dfam db components related to the ptovided taxid
             ch_dfam_db = FAMDB_DOWNLOAD_DFAM(
                 ch_input.map { rec -> record(taxid: rec.taxid, taxid_lineage: rec.taxid_lineage) }.unique()
             )
 
             ch_input = ch_input.join( ch_dfam_db, by: 'taxid' )
-            
+
         }
-        
+
         ch_masked = EARLGREY( ch_input )
-        
+
     }
 
     ch_masked = ch_input

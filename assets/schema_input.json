@@ -69,8 +69,8 @@
                         "properties": {
                             "short": {
                                 "type": "array",
-                                 "description": "Paired-end / single-end short read fastq files.",
-                                 "items": {
+                                "description": "Paired-end / single-end short read fastq files.",
+                                "items": {
                                     "type": "object",
                                     "properties": {
                                         "R1": {

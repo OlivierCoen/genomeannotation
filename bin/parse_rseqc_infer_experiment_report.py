@@ -58,8 +58,8 @@ PATTERNS = {
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--report", 
-        type=Path, 
+        "--report",
+        type=Path,
         required=True,
         help="Species name (or Taxon ID)"
     )
@@ -68,18 +68,18 @@ def parse_args():
 
 def parse_report(file: Path) -> Stranded:
     results = {}
-    
+
     with open(file, 'r') as fin:
         for line in fin:
-            
+
             if line.strip() == PATTERNS[Report.UNKNOWN]:
                 return Stranded.UNKNOWN
-                
+
             for k, r in PATTERNS.items():
                 match = re.search(r, line)
                 if match:
                     results[k] = float(match.group(1))
-    
+
     return infer_strandedness_from_results(results)
 
 
@@ -98,7 +98,7 @@ def is_paired_end(results: dict) -> bool:
 
 def is_single_end(results: dict) -> bool:
     return Report.SINGLE_END_SENSE in results or Report.SINGLE_END_ANTISENSE in results
-    
+
 
 def infer_strandedness_from_results(results: dict) -> Stranded:
     if Report.UNKNOWN in results:
@@ -106,18 +106,18 @@ def infer_strandedness_from_results(results: dict) -> Stranded:
     # Paired end
     if is_paired_end(results): # assuming that no single end part was found
         return get_strandedness(
-            results.get(Report.PAIRED_END_SENSE), 
+            results.get(Report.PAIRED_END_SENSE),
             results.get(Report.PAIRED_END_ANTISENSE)
         )
     # Single end
     if is_single_end(results):
         return get_strandedness(
-            results.get(Report.SINGLE_END_SENSE), 
+            results.get(Report.SINGLE_END_SENSE),
             results.get(Report.SINGLE_END_ANTISENSE)
         )
     # should not happen
     return Stranded.UNKNOWN
-    
+
 
 #####################################################
 #####################################################
@@ -130,10 +130,10 @@ def main():
     args = parse_args()
 
     strandedness = parse_report(args.report)
-    
+
     with open(OUTFILE, 'w') as fout:
         fout.write(strandedness.value)
-        
+
 
 if __name__ == "__main__":
     main()

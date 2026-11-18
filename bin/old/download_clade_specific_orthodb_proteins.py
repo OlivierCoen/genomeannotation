@@ -7,7 +7,7 @@
 """
 Get the species IDs corresponding to a species clade, optionnally excluding species / clades from given lists.
 """
-                                 
+
 import argparse
 import csv
 import sys
@@ -81,19 +81,19 @@ class SpeciesSelector:
 
         clade_id = self.get_clade_id(self.clade)
         species_ids: set = self.parse_species_ids(clade_id)
-    
+
         if self.excluded_clades:
             for clade_to_exclude in self.excluded_clades.split(','):
                 excluded_clade_id = self.get_clade_id(clade_to_exclude)
                 excluded_species = self.parse_species_ids(excluded_clade_id)
                 species_ids.remove(excluded_species)
-    
+
         if self.excluded_species:
             excluded_species = self.get_species_ids_from_names(self.excluded_species)
             species_ids -= excluded_species
 
         return species_ids
-    
+
 
     def get_clade_id(self, clade: str):
         with open(self.levels_file) as fin:
@@ -101,8 +101,8 @@ class SpeciesSelector:
                 if row[1] == clade:
                     return row[0]
         sys.exit(f'Error: Clade {clade} not found in {self.levels_file}')
-    
-    
+
+
     def parse_species_ids(self, clade_id: str) -> set:
         species_ids = set()
         with open(self.levels2species_file) as fin:
@@ -110,8 +110,8 @@ class SpeciesSelector:
                 if clade_id in row[3].strip("{}").split(","):
                     species_ids.add(row[1])
         return species_ids
-    
-    
+
+
     def get_species_ids_from_names(self, species_names: str) -> set:
         species_names = {s.strip() for s in species_names.split(",")}
         excluded = set()
@@ -152,7 +152,7 @@ class _ChunkStream(io.RawIOBase):
 class ParallelStreamFastaDownloader:
     """
     Parallel, ordered, streaming download of a .fasta.gz with on-the-fly filtering.
-     
+
     Uses httpx (shared thread-safe client, connection pooling) + threads for
     concurrent byte-range requests. Output is reassembled in order, so gzip
     and the FASTA parser see one continuous stream. Nothing but the filtered
@@ -162,11 +162,11 @@ class ParallelStreamFastaDownloader:
     TIMEOUT: ClassVar[int] = 60
     CHUNK_SIZE: ClassVar[int] = 8 * 1024 * 1024
     N_WORKERS: ClassVar[int] = 3 # starts to return responses with status 403 from N_WORKERS = 4 onwards
-    
+
     url: str
     out_path: str
     species_ids: set[str]
-    
+
     client: httpx.Client = field(init=False)
     _last_id: str | None = field(default=None, init=False)
 
@@ -177,8 +177,8 @@ class ParallelStreamFastaDownloader:
             timeout=httpx.Timeout(self.TIMEOUT, connect=15),
             limits=httpx.Limits(max_connections=self.N_WORKERS, max_keepalive_connections=self.N_WORKERS),
         )
-        
-    
+
+
     def _probe(self, client: httpx.Client) -> tuple[int | None, str | None]:
         """
         Return (total_size, etag) if the server honors Range requests,
@@ -206,7 +206,7 @@ class ParallelStreamFastaDownloader:
             # If the file changed on the server, it replies 200 (full body)
             # instead of 206, which we treat as an error below.
             headers["If-Range"] = etag
-    
+
         r = client.get(self.url, headers=headers)
         if r.status_code != 206:
             raise OSError(
@@ -217,8 +217,8 @@ class ParallelStreamFastaDownloader:
         if len(data) != expected:
             raise OSError(f"short read: got {len(data)} of {expected} bytes")
         return data
-            
-    
+
+
     def _iter_chunks(self, client: httpx.Client, size: int, etag: str | None) -> Iterator[bytes]:
         """Yield chunks strictly in order."""
         ranges = iter(
@@ -226,14 +226,14 @@ class ParallelStreamFastaDownloader:
         )
         pending: deque = deque()
         prefetch = 2 * self.N_WORKERS
-    
+
         with ThreadPoolExecutor(max_workers=self.N_WORKERS) as ex:
-    
+
             def submit() -> None:
                 r = next(ranges, None)
                 if r is not None:
                     pending.append(ex.submit(self._fetch_range, client, *r, etag))
-    
+
             try:
                 for _ in range(prefetch):
                     submit()
@@ -244,15 +244,15 @@ class ParallelStreamFastaDownloader:
             finally:
                 for f in pending:
                     f.cancel()
-    
-    
+
+
     def _iter_single_stream(self, client: httpx.Client) -> Iterator[bytes]:
         """Fallback: plain sequential download when Range isn't supported."""
         with client.stream("GET", self.url) as r:
             r.raise_for_status()
             # iter_raw() yields the bytes exactly as sent (no content decoding).
             yield from r.iter_raw(self.CHUNK_SIZE)
-    
+
 
     @staticmethod
     def _iter_fasta(handle) -> Iterator[tuple[str, list[str]]]:
@@ -282,44 +282,44 @@ class ParallelStreamFastaDownloader:
                 logger.info(f"Now at species ID {header_id}")
                 self._last_id = header_id
             return header_id in self.species_ids
-                
-    
+
+
     def stream_filter_fasta_gz(self) -> tuple[int, int]:
         """
         Download a .fasta.gz with parallel range requests, decompress and filter
         it on the fly, and write kept records to `out_path` (gzipped if it ends
         in .gz).
-    
+
         keep(header, sequence) -> bool decides whether a record is written.
         `header` includes the leading '>'; `sequence` is the unwrapped sequence.
-    
+
         prefetch: chunks submitted ahead of the consumer (default workers * 2).
         Memory use is roughly prefetch * chunk_size.
-    
+
         Returns (records_seen, records_kept).
         """
-    
+
         nb_sequences = nb_kept = 0
         with self.client:
             size, etag = self._probe(self.client)
-    
+
             if size is None:
                 chunks = self._iter_single_stream(self.client)
             else:
                 chunks = self._iter_chunks(self.client, size, etag)
-    
+
             raw = io.BufferedReader(_ChunkStream(chunks), buffer_size=1024 * 1024)
             opener = gzip.open if self.out_path.endswith(".gz") else open
-    
+
             try:
                 # GzipFile transparently handles multi-member (concatenated/bgzip) files.
                 with gzip.open(raw, "rt") as text, opener(self.out_path, "wt") as out:
                     for header, lines in self._iter_fasta(text):
-                        
+
                         nb_sequences += 1
                         if nb_sequences % int(1e5) == 0:
                             logger.info(f"Parsed {nb_sequences} sequences")
-                        
+
                         if self._keep(header):
                             nb_kept += 1
                             out.write(header + "\n")
@@ -328,9 +328,9 @@ class ParallelStreamFastaDownloader:
                 raw.close()
                 if hasattr(chunks, "close"):
                     chunks.close()  # stops the prefetcher if we exit early
-    
+
         return nb_sequences, nb_kept
-    
+
 
 
 # ---------------------------------------------------
@@ -342,17 +342,17 @@ def main():
 
     # GET SPECIES IDS
     species_selector = SpeciesSelector(
-        args.clade, 
+        args.clade,
         args.levels_file,
         args.levels2species_file,
         args.species_file,
         args.excluded_clades,
         args.excluded_species
     )
-    
+
     species_ids = species_selector.get_species_ids()
     logger.info(f"Found {len(species_ids)} species for clade {args.clade}")
-    
+
     species_ids_outfile = SPECIES_IDS_OUTFILE.format(clade=args.clade)
     logger.info(f"Writing species ids to {species_ids_outfile}")
     with open(species_ids_outfile, "w") as fout:
@@ -366,7 +366,7 @@ def main():
         protein_db_outfile,
         species_ids
     )
-    
+
     nb_sequences, nb_kept_sequences = downloader.stream_filter_fasta_gz()
     logger.info(f"Saw {nb_sequences} sequences, kept {nb_kept_sequences}")
 

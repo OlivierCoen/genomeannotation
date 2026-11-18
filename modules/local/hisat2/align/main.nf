@@ -46,7 +46,7 @@ process HISAT2_ALIGN {
     }
 
     // NOTE: --dta is required for braker (makes HISAT2 write the XS:A:+/- tag)
-    // samtools flags: 
+    // samtools flags:
     // -F 4 : exclude read unmapped
     // -F 8 : exclude mate unmapped
     // -F 256: exclude if not primary alignment
@@ -58,7 +58,7 @@ process HISAT2_ALIGN {
 
         TMPDIR=tmp
         mkdir \$TMPDIR
-        
+
         hisat2 \\
             -x \$INDEX \\
             -U ${reads[0]} \\
@@ -84,7 +84,7 @@ process HISAT2_ALIGN {
 
         TMPDIR=tmp
         mkdir \$TMPDIR
-        
+
         hisat2 \\
             -x \$INDEX \\
             -1 ${reads[0]} \\

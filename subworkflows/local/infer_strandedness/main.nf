@@ -35,19 +35,19 @@ workflow INFER_STRANDEDNESS {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def sample_size = 2e5 // samples 200000 reads
-    ch_sampled = SAMPLE_READS( 
+    ch_sampled = SAMPLE_READS(
         ch_input.map { rec -> record(id: rec.read_id, reads: rec.reads) },
         sample_size
     )
     ch_input = ch_input.join(
-        ch_sampled.map { rec -> record(read_id: rec.id, reads: rec.reads) }, 
+        ch_sampled.map { rec -> record(read_id: rec.id, reads: rec.reads) },
         by: 'read_id'
     )
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // ALIGNED SAMPLED READS TO GENOME
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     ch_aligned = HISAT2_ALIGN( ch_input )
 
     ch_input = ch_input.join( ch_aligned, by: 'read_id' )
@@ -58,10 +58,10 @@ workflow INFER_STRANDEDNESS {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // SAMPLES HAVING A REFERENCE GFF (MORE PRECISE INFERENCE OF STRANDEDNESS)
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     // CONVERT REFERENCE GFF (WHEN PROVIDED) TO BED
 
-    ch_gff_converted = CONVERT_GXF_TO_BED( 
+    ch_gff_converted = CONVERT_GXF_TO_BED(
         ch_input_has_gtf.map { rec -> record(id: rec.id, gxf: rec.reference_gtf) }.unique()
     )
     ch_input_with_bed = ch_input_has_gtf.join(ch_gff_converted, by: 'id')
@@ -76,14 +76,14 @@ workflow INFER_STRANDEDNESS {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // SAMPLES WITHOUT A REFERENCE GFF
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     ch_xs_strandedness = INFER_STRAND_FROM_XS( ch_input_no_gtf )
 
     ch_input_no_gtf = ch_input_no_gtf.join(ch_xs_strandedness, by: 'read_id')
 
     ch_strandedness = ch_input_has_gtf.mix(ch_input_no_gtf)
                         .map { rec -> rec.subMap(['read_id', 'strandedness'])}
-    
+
     emit:
     ch_strandedness
 

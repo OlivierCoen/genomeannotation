@@ -29,11 +29,11 @@ process GET_SRA_METADATA {
 
     topic:
         tuple('sra_metadata', taxid, files("sra_metadata.*.json", optional: true)) >> 'additional_results'
-        tuple("${task.process}", 'python',   eval("python3 --version | sed 's/Python //'"))                                             >> 'versions'                  
+        tuple("${task.process}", 'python',   eval("python3 --version | sed 's/Python //'"))                                             >> 'versions'
         tuple("${task.process}", 'requests', eval('python3 -c "import requests; print(requests.__version__)"'))                         >> 'versions'
         tuple("${task.process}", 'tenacity', eval('python3 -c "from importlib.metadata import version; print(version(\'tenacity\'))"')) >> 'versions'
-        tuple("${task.process}", 'xmltodict', eval('python3 -c "import xmltodict; print(xmltodict.__version__)"'))                      >> 'versions'    
-    
+        tuple("${task.process}", 'xmltodict', eval('python3 -c "import xmltodict; print(xmltodict.__version__)"'))                      >> 'versions'
+
     script:
     def paired_only_arg = sra_allow_single_end ? "" : "--paired-only"
     """
@@ -46,4 +46,3 @@ process GET_SRA_METADATA {
     """
 
 }}
-

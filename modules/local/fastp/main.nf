@@ -12,7 +12,7 @@ process FASTP {
 
     input:
         record(
-            id: String, 
+            id: String,
             read_id: String,
             reads: List<Path>
         )
@@ -44,7 +44,7 @@ process FASTP {
             2>| >(tee ${prefix}.fastp.log >&2)
 
         # checking if filtered file is empty
-        if [ \$(zcat ${prefix}.fastp.fastq.gz | head -c 1 | wc -c) -eq "0" ]; then 
+        if [ \$(zcat ${prefix}.fastp.fastq.gz | head -c 1 | wc -c) -eq "0" ]; then
             echo "${prefix}.fastp.fastq.gz is empty... Removing file to avoid downstream issues"
             rm ${prefix}.fastp.fastq.gz
         fi
@@ -64,7 +64,7 @@ process FASTP {
             2>| >(tee ${prefix}.fastp.log >&2)
 
         # checking if filtered file is empty
-        if [ \$(zcat ${prefix}_R1.fastp.fastq.gz | head -c 1 | wc -c) -eq "0" ]; then 
+        if [ \$(zcat ${prefix}_R1.fastp.fastq.gz | head -c 1 | wc -c) -eq "0" ]; then
             echo "${prefix}_R1.fastp.fastq.gz is empty... Removing files to avoid downstream issues"
             rm ${prefix}_R1.fastp.fastq.gz ${prefix}_R2.fastp.fastq.gz
         fi

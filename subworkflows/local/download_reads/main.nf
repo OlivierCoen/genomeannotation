@@ -59,13 +59,13 @@ workflow DOWNLOAD_READS {
             read_sampling_size
         )
         ch_downloaded_reads = ch_downloaded_reads.join( ch_sampled_reads, by: 'id' )
-    
+
     }
-    
+
     // ------------------------------------------------------------------------------------
     // ASSOCIATE DOWNLOADED READS BACK TO SAMPLE IDS
     // ------------------------------------------------------------------------------------
-     
+
     // associating back to the corresponding sample IDs
     // TODO: simplify when groupBy can handle records
 
@@ -78,9 +78,9 @@ workflow DOWNLOAD_READS {
                                     }
                                     .join(ch_downloaded_reads, by: 'sra_id')
                                     // replacing SRA ID by file simple name here because multiple downloaded files may have the same SRA ID
-                                    .map{ rec -> 
+                                    .map{ rec ->
                                         def read_id = rec.reads[0].simpleName.replaceAll(/_\d+/, '')
-                                        tuple(rec.id, record(id: read_id, reads: rec.reads)) 
+                                        tuple(rec.id, record(id: read_id, reads: rec.reads))
                                     }
                                     .groupBy()
                                     .map{ id, records ->  record(id: id, downloaded_short_reads: records) }
@@ -93,13 +93,13 @@ workflow DOWNLOAD_READS {
                                     .join(ch_downloaded_reads, by: 'sra_id')
                                     // replacing SRA ID by file simple name here because multiple downloaded files may have the same SRA ID
                                     // changing key: 'reads' -> 'fastq'
-                                    .map{ rec -> 
+                                    .map{ rec ->
                                         def read_id = rec.reads[0].simpleName
-                                        tuple(rec.id, record(id: read_id, fastq: rec.reads[0])) 
-                                    } 
+                                        tuple(rec.id, record(id: read_id, fastq: rec.reads[0]))
+                                    }
                                     .groupBy()
                                     .map{ id, records ->  record(id: id, downloaded_long_reads: records) }
-                                    
+
 
     ch_input = ch_input
                 .join(ch_downloaded_short_reads, by: 'id', remainder: true)

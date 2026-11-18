@@ -23,7 +23,7 @@ workflow REPORTING {
     outdir
 
     main:
-    
+
     // ------------------------------------------------------------------------------------
     // VERSIONS
     // ------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ workflow REPORTING {
             versions_file: entry instanceof Path
             versions_tuple: true
         }
-    
+
     def topic_versions_string = topic_versions.versions_tuple
         .map { process, tool, version ->
             [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
@@ -114,12 +114,12 @@ workflow REPORTING {
                                     sort: true
                                 )
                             )
-                            .map { data, version_file, description_file -> 
+                            .map { data, version_file, description_file ->
                                 def id = data[0]
                                 def meta = [id: id]
                                 def file_list = data[1]
                                 def data_files = file_list + [version_file, description_file]
-                                [ meta, data_files.flatten().toSorted() ] 
+                                [ meta, data_files.flatten().toSorted() ]
                             } // flatten and sort for reproducibility
 
     // ------------------------------------------------------------------------------------
@@ -129,14 +129,14 @@ workflow REPORTING {
     ch_multiqc_input = ch_multiqc_file_list
                         .combine( ch_multiqc_config_list )
                         .combine( ch_multiqc_logo )
-                        .map { data, configs, logo -> 
+                        .map { data, configs, logo ->
                             def meta = data[0]
                             def data_files = data[1]
-                            [meta, data_files, configs, logo, [], []] 
+                            [meta, data_files, configs, logo, [], []]
                         }
-                        
+
     ch_multiqc_out = MULTIQC ( ch_multiqc_input )
-    
+
     emit:
     report = ch_multiqc_out.report.map{ meta, report -> record(id: meta.id, multiqc_report: report) }
 }

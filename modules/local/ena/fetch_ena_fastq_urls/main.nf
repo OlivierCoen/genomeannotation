@@ -16,19 +16,19 @@ process FETCH_ENA_FASTQ_URLS {
 
     output:
         record(
-            id: id, 
+            id: id,
             ftp_urls: file('ena_ftp_links.txt')
-        ) 
-    
+        )
+
     topic:
         tuple( "${task.process}", 'python', eval("python3 --version | sed 's/Python //'") )                                               >> 'versions'
         tuple( "${task.process}", 'requests', eval('python3 -c "import requests; print(requests.__version__)"') )                         >> 'versions'
         tuple( "${task.process}", 'tenacity', eval('python3 -c "from importlib.metadata import version; print(version(\'tenacity\'))"') ) >> 'versions'
-        
+
     script:
     """
     fetch_ena_fastq_urls.py \\
-        --accession $id 
+        --accession $id
     """
 
 }

@@ -16,14 +16,14 @@ record Input {
     id: String
     species: String
     proteome: Path
-    other_proteomes: Set<Path>
+    other_proteomes: List<Path>
 }
 
 workflow BUSCO {
 
     take:
     ch_input: Channel<Input>
-  
+
 
     main:
 
@@ -36,8 +36,8 @@ workflow BUSCO {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // SEARCH A MATCHING LINEAGE BETWEEN THE LIST OF AVAILABLE LINEAGES AND THE LINEAGE OF PARENT ORGANISMS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    ch_busco_lineage = GET_LINEAGE( 
+
+    ch_busco_lineage = GET_LINEAGE(
         ch_input.map { rec -> rec.species }.unique(),
         ch_available_busco_datasets
     )
@@ -62,11 +62,11 @@ workflow BUSCO {
 
     BUSCO_GENOME (
         ch_busco_input.map { rec -> record(
-                id: rec.id, 
-                fasta: rec.fasta, 
-                lineage: rec.busco_lineage, 
+                id: rec.id,
+                fasta: rec.fasta,
+                lineage: rec.busco_lineage,
                 download_path: rec.busco_download_path
-            ) 
+            )
         },
         'genome'
     )
@@ -75,23 +75,23 @@ workflow BUSCO {
     // BUSCO ON ALL PROTEOMES
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_busco_proteome_input = ch_busco_input.flatMap { rec -> 
+    ch_busco_proteome_input = ch_busco_input.flatMap { rec ->
         def main_proteome = record(
-            id: rec.id, 
-            fasta: rec.proteome, 
-            lineage: rec.busco_lineage, 
+            id: rec.id,
+            fasta: rec.proteome,
+            lineage: rec.busco_lineage,
             download_path: rec.busco_download_path,
             reference: true
         )
-        def other_proteomes = rec.other_proteomes.collect { proteome -> record( 
-            id: rec.id, 
-            fasta: proteome, 
-            lineage: rec.busco_lineage, 
+        def other_proteomes = rec.other_proteomes.collect { proteome -> record(
+            id: rec.id,
+            fasta: proteome,
+            lineage: rec.busco_lineage,
             download_path: rec.busco_download_path,
             reference: false
         ) }
         [ main_proteome ] + other_proteomes
-        
+
     }
 
     BUSCO_PROTEOME (

@@ -11,7 +11,7 @@ process AGAT_SPCOMPLEMENTANNOTATIONS {
 
     input:
         record(
-            id: String, 
+            id: String,
             gff: Path,
             reference_gff: Path
         )
@@ -24,7 +24,7 @@ process AGAT_SPCOMPLEMENTANNOTATIONS {
 
     topic:
         tuple("${task.process}", 'agat', eval("sp_complement_annotations.pl -h | sed -n 's/.*(AGAT) - Version: \\(.*\\) .*/\\1/p'")) >> 'versions'
-        
+
     script:
     def args   = task.ext.args   ?: ''
     def prefix = task.ext.prefix ?: "${id}"

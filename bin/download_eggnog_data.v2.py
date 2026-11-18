@@ -66,13 +66,13 @@ def run(cmd: list[str], shell: bool = False):
 
 def download(url: str, data_path: Path, ncpus: int):
     cmd = [
-        'aria2c', 
-        '-s', str(ncpus), 
-        '-x', str(ncpus),  
-        '--optimize-concurrent-downloads', 
-        '--check-integrity=true', 
-        '--dir', 
-        str(data_path), 
+        'aria2c',
+        '-s', str(ncpus),
+        '-x', str(ncpus),
+        '--optimize-concurrent-downloads',
+        '--check-integrity=true',
+        '--dir',
+        str(data_path),
         url
     ]
     run(cmd)

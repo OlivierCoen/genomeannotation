@@ -7,9 +7,8 @@
         - SRX10300987 # paired-end
         - SRX26701554 # paired-end, stranded
         - DRX645493 # single-end
-      long: 
+      long:
         - ERX16538129
-      
 
 - sample: ena
   genome: https://raw.githubusercontent.com/Gaius-Augustus/BRAKER/master/example/genome.fa
@@ -22,4 +21,3 @@
     sra:
       short:
         - ERX16197251 # paired-end
-    

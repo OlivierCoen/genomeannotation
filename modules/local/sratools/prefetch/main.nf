@@ -16,20 +16,20 @@ process SRATOOLS_PREFETCH {
 
     output:
         record(
-            id: id, 
+            id: id,
             sra: files("${id[0..1]}*", type: 'dir')
         )
-  
+
     topic:
-        tuple( "${task.process}", 'sratools', eval("fasterq-dump --version 2>&1 | grep -Eo '[0-9.]+'") )         >> 'versions' 
-        tuple( "${task.process}", 'curl',     eval("curl --version | head -n 1 | sed 's/^curl //; s/ .*\$//'") ) >> 'versions'  
+        tuple( "${task.process}", 'sratools', eval("fasterq-dump --version 2>&1 | grep -Eo '[0-9.]+'") )         >> 'versions'
+        tuple( "${task.process}", 'curl',     eval("curl --version | head -n 1 | sed 's/^curl //; s/ .*\$//'") ) >> 'versions'
 
     script:
     def args = task.ext.args ?: ''
     def two_first_letters = id[0..1]
     """
     export NCBI_SETTINGS="\$PWD/!{ncbi_settings}"
-    
+
     prefetch $args $id
 
     # sometimes the SRA ID actually downloaded is different from the original one

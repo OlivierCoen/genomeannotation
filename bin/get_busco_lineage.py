@@ -33,8 +33,8 @@ BUSCO_LINEAGE_OUTFILE = "busco_lineage.txt"
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--species", 
-        type=str, 
+        "--species",
+        type=str,
         required=True,
         help="Species name (or Taxon ID)"
     )
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     args = parse_args()
 
     species_taxonomy = Taxonomy.get_taxonomy(args.species)
-    
+
     lineages_to_busco_datasets = parse_busco_datasets(args.busco_datasets)
     logger.info(f"Parsed {len(lineages_to_busco_datasets)} busco lineages")
 

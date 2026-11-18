@@ -49,13 +49,13 @@ def send_request_to_ncbi_taxonomy(taxid: str | int):
 
 @dataclass
 class Taxonomy:
-    
+
     organism: str
     taxid: int
     common_name: str
     taxid_lineage: list[int]
     organism_lineage: list[str]
-        
+
     def __str__(self) -> str:
         return f"{self.organism} [{self.common_name}] (taxid: {self.taxid})"
 
@@ -75,9 +75,9 @@ class Taxonomy:
         organism = metadata["organism_name"]
         taxid = int(metadata["tax_id"])
         lineage = metadata["lineage"]
-        
+
         common_name = metadata.get("common_name", metadata["organism_name"])
-        
+
         # from the most specific (species level or below) to the most general
         taxid_lineage = [taxid] + [int(taxid) for taxid in lineage[::-1]]
 
@@ -100,10 +100,10 @@ class Taxonomy:
     @staticmethod
     def get_taxon_metadata(taxon: str | int) -> dict:
         result = send_request_to_ncbi_taxonomy(taxon)
-        
+
         if len(result["taxonomy_nodes"]) > 1:
             raise ValueError(f"Multiple taxids for {taxon}")
-            
+
         try:
             taxonomy_node = result["taxonomy_nodes"][0]
         except (IndexError, KeyError):
@@ -112,14 +112,14 @@ class Taxonomy:
                 for error in result["errors"]:
                     msg += f"\n{error['reason']}"
             raise RuntimeError(msg)
-            
+
         if "taxonomy" not in taxonomy_node:
             msg = f"Could not find taxonomy results for taxon {taxon}"
             if "errors" in taxonomy_node:
                 for error in taxonomy_node["errors"]:
                     msg += f"\n{error['reason']}"
             raise RuntimeError(msg)
-            
+
         return taxonomy_node["taxonomy"]
 
 
@@ -136,20 +136,20 @@ class Taxonomy:
         """
         logger.info(f"Finding matching lineage for {self.organism} among {len(organism_names)} names")
         matching_lineage = None
-    
+
         # looping from the most specific (species level or below) to the most general
         for parent_organism in self.organism_lineage:
             if parent_organism in organism_names:
                 logger.info(f"Found lineage match: {parent_organism} -> {organism_names[parent_organism]}")
                 matching_lineage = organism_names[parent_organism]
                 break
-    
+
         if matching_lineage is None:
             logger.warning(
                 f"No lineage match found for species {self.organism} "
                 f"and lineage {' '.join([str(l) for l in self.organism_lineage])}."
             )
-    
+
         return matching_lineage
 
 
@@ -164,19 +164,19 @@ class Taxonomy:
             for lineage, lineage_dict in model_lineages.items():
                 if taxid == lineage_dict["included"]:
                     candidate_lineages.append(lineage)
-                    
+
         if candidate_lineages:
             logger.info(f"{tool} candidate lineages: {candidate_lineages}")
         else:
             logger.warning(f"No candidate lineage found for {tool}")
             return None
-            
+
         # among the candidate lineages, searching for the ones that are excluded
         for taxid in self.taxid_lineage:
             for lineage in candidate_lineages:
                 if taxid == model_lineages[lineage]["excluded"]:
                     del candidate_lineages[lineage]
-    
+
         if candidate_lineages:
             if len(candidate_lineages) > 1:
                 logger.warning(f"Multiple {tool} lineages found for taxid lineage: {self.taxid_lineage}. Taking the first one.")

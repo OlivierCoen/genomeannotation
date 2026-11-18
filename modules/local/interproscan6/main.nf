@@ -1,6 +1,6 @@
 nextflow.enable.types = true
 
-include { removeKeyValueArgs; 
+include { removeKeyValueArgs;
           buildCacheDirURI;
           getWorkflowConfigPaths;
           workflowHasResumeFlag } from "../../../subworkflows/local/utils_nfcore_genomeannotation_pipeline"
@@ -19,13 +19,13 @@ def getInterproscanVersion(){
 // https://github.com/mahesh-panchal/nf-cascade
 
 process INTERPROSCAN6 {
-    
+
     tag "$id"
     label "process_high"
 
     input:
         record(
-            id: String,     
+            id: String,
             fasta: Path
         )
 
@@ -34,7 +34,7 @@ process INTERPROSCAN6 {
             id: id,
             gff: file("results/*.gff3", optional: true)
         )
-    
+
     topic:
         tuple("interproscan", id, file("results/*.tsv", optional: true))  >> "additional_results"
         tuple("interproscan", id, file("results/*.xml", optional: true))  >> "additional_results"
@@ -48,7 +48,7 @@ process INTERPROSCAN6 {
     // ---------------------------------------------------
     // CACHE
     // ---------------------------------------------------
-    
+
     // Set cache directory so workflow can `-resume`
     def cache_dir = buildCacheDirURI(task.process, [id: id, fasta: fasta])
     def cache_path = file(cache_dir)
@@ -57,7 +57,7 @@ process INTERPROSCAN6 {
     // ---------------------------------------------------
     // ENV VARS
     // ---------------------------------------------------
-    
+
     // NXF_* and TOWER_* env vars inherited from a Tower/Seqera Platform launch break the nested run
     // Excluded so the nested run falls back to its own defaults, except shared, namespaced
     // storage locations we still want it to reuse.
@@ -72,8 +72,8 @@ process INTERPROSCAN6 {
         "NXF_CHARLIECLOUD_CACHEDIR",
         "NXF_SPACK_CACHEDIR",
     ]
-    def child_env = System.getenv().findAll { 
-        k, v -> !(k.startsWith("NXF") || k.startsWith("TOWER")) || k in nxf_passthrough 
+    def child_env = System.getenv().findAll {
+        k, v -> !(k.startsWith("NXF") || k.startsWith("TOWER")) || k in nxf_passthrough
     }
 
     // setting nextflow version in env vars
@@ -100,7 +100,7 @@ process INTERPROSCAN6 {
     // ---------------------------------------------------
     // BUILD COMMAND
     // ---------------------------------------------------
-    
+
     // drop --input/--datadir and their values from the user-provided arg list
     def ips_args = removeKeyValueArgs([args: args, excluded_args: ["--input", "--datadir"]])
 
@@ -123,17 +123,17 @@ process INTERPROSCAN6 {
             ips_args.join(" "),
             "--outdir ${task.workDir}/results"
     ].minus("").join(" ")
-        
+
     // Copy command to shell script in work dir for reference/debugging.
     file("${task.workDir}/nf-cmd.sh").text = nxf_cmd
 
     // ---------------------------------------------------
     // RUN
     // ---------------------------------------------------
-    
+
     // Run nextflow command locally in cache directory
     def process = nxf_cmd.execute(child_env, cache_path.toFile())
-    
+
     // Print process output to stdout and stderr (uncommed the line below for debugging)
     //process.consumeProcessOutput(System.out, System.err)
     process.waitFor()
@@ -141,10 +141,10 @@ process INTERPROSCAN6 {
     // ---------------------------------------------------
     // CHECK RUN STATUS
     // ---------------------------------------------------
-    
+
     // Copy nextflow log to work directory
     cache_path.resolve(".nextflow.log").copyTo("${task.workDir}/nextflow.log")
-    assert process.exitValue() == 0: 
+    assert process.exitValue() == 0:
         """
         ============================================================
         PIPELINE FAILED: ${id}
@@ -158,12 +158,12 @@ process INTERPROSCAN6 {
     def clean_process = clean_cmd.execute(child_env, cache_path.toFile())
     // clean_process.consumeProcessOutput(System.out, System.err)
     clean_process.waitFor()
-    assert clean_process.exitValue() == 0: 
+    assert clean_process.exitValue() == 0:
         """
         ============================================================
         CACHE CLEAN FAILED: ${id}
         Exit Code: ${clean_process.exitValue()}
         ============================================================
         """.stripIndent()
-        
+
 }

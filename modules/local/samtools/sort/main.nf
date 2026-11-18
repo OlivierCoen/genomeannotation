@@ -11,7 +11,7 @@ process SAMTOOLS_SORT {
 
     input:
         record(
-            id: String, 
+            id: String,
             read_id: String,
             bam: Path
             )

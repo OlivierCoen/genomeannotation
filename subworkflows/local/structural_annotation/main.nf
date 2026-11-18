@@ -23,8 +23,8 @@ record Input {
     proteins_fasta: Path
     short_read_mappings: List<Mapping>
     long_read_mappings: List<Mapping>
-    tsebra_gtfs: Set<Path>
-    tsebra_hintsfiles: Set<Path>
+    tsebra_gtfs: List<Path>
+    tsebra_hintsfiles: List<Path>
 }
 
 
@@ -45,7 +45,7 @@ workflow STRUCTURAL_ANNOTATION {
     } else if ( structural_annotator == "helixer" ) {
 
         ch_annotated = HELIXER( ch_input )
-        
+
     } else if ( structural_annotator == "metaeuk" ) {
 
         ch_annotated = METAEUK(
@@ -53,7 +53,7 @@ workflow STRUCTURAL_ANNOTATION {
             mmseqs_db,
             skip_mmseqs_db_download
         )
-        
+
     }
 
     emit:

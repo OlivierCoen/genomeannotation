@@ -17,7 +17,7 @@ process OMARK_OMARK {
             transcript_isoforms: Path
         )
         omamer_db: Path
-    
+
     topic:
         tuple('omark', id, files("*_omark_out/*")) >> 'additional_results'
         tuple("${task.process}", 'omark', eval('omark --version')) >> 'versions'
@@ -28,7 +28,7 @@ process OMARK_OMARK {
     """
     # for matplotlib
     export MPLCONFIGDIR=\${PWD}
-    
+
     omark \\
         --file ${omamer} \\
         --database ${omamer_db} \\
@@ -39,5 +39,5 @@ process OMARK_OMARK {
         ${args}
     """
 
-   
+
 }

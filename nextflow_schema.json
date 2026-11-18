@@ -208,10 +208,10 @@
             "description": "Options for mapping of RNA-seq reads",
             "properties": {
                 "short_read_mapper": {
-                  "type": "string",
-                  "description": "Tool to use for RNA-seq read mapping.",
-                  "enum": ["hisat2", "star"],
-                  "default": "hisat2"
+                    "type": "string",
+                    "description": "Tool to use for RNA-seq read mapping.",
+                    "enum": ["hisat2", "star"],
+                    "default": "hisat2"
                 },
                 "ignore_existing_gff_for_mapping": {
                     "type": "boolean",
@@ -364,8 +364,8 @@
                 "functional_annotators": {
                     "type": "array",
                     "items": {
-                      "type": "string",
-                      "enum": ["eggnogmapper", "interproscan6", "interproscan5"]
+                        "type": "string",
+                        "enum": ["eggnogmapper", "interproscan6", "interproscan5"]
                     },
                     "description": "Tool(s) to use for functional annotation. Tools should be separated by comma(s).",
                     "default": ["eggnogmapper", "interproscan6"],
@@ -404,32 +404,32 @@
             "fa_icon": "fas fa-terminal",
             "description": "Options for quality control",
             "properties": {
-              "skip_qc": {
-                "type": "boolean",
-                "description": "Skip all quality controls.",
-                "fa_icon": "fas fa-hand-scissors"
-              },
-              "skip_busco": {
-                "type": "boolean",
-                "description": "Skip BUSCO",
-                "fa_icon": "fas fa-hand-scissors"
-              },
-              "skip_omark": {
-                  "type": "boolean",
-                  "description": "Skip OMArk",
-                  "fa_icon": "fas fa-hand-scissors"
-              },
-              "omamer_db_url": {
-                  "type": "string",
-                  "description": "OMAMER database URL.",
-                  "help": "Example: https://omabrowser.org/All/LUCA.h5"
-              },
-              "omamer_db": {
-                  "type": "string",
-                  "format": "file-path",
-                  "exists": true,
-                  "description": "Path to the OMAMER database."
-              }
+                "skip_qc": {
+                    "type": "boolean",
+                    "description": "Skip all quality controls.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "skip_busco": {
+                    "type": "boolean",
+                    "description": "Skip BUSCO",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "skip_omark": {
+                    "type": "boolean",
+                    "description": "Skip OMArk",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "omamer_db_url": {
+                    "type": "string",
+                    "description": "OMAMER database URL.",
+                    "help": "Example: https://omabrowser.org/All/LUCA.h5"
+                },
+                "omamer_db": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "description": "Path to the OMAMER database."
+                }
             }
         },
         "generic_options": {
@@ -534,7 +534,7 @@
                 }
             }
         },
-	"institutional_config_options": {
+        "institutional_config_options": {
             "title": "Institutional config options",
             "type": "object",
             "fa_icon": "fas fa-university",
@@ -581,7 +581,7 @@
                     "fa_icon": "fas fa-users-cog"
                 }
             }
-        },
+        }
     },
     "allOf": [
         {
@@ -589,7 +589,7 @@
         },
         {
             "$ref": "#/$defs/masking_options"
-        },    
+        },
         {
             "$ref": "#/$defs/rnaseq_general_options"
         },
@@ -623,7 +623,7 @@
         {
             "$ref": "#/$defs/quality_control_options"
         },
-	{
+        {
             "$ref": "#/$defs/institutional_config_options"
         },
         {

@@ -20,7 +20,7 @@ process EGGNOGMAPPER_DOWNLOADDB {
     def args = task.ext.args ?: ''
     """
     mkdir data
-    
+
     download_eggnog_data.py \\
         --data_dir data \\
         ${args}

@@ -40,7 +40,7 @@ workflow SHORT_READ_PREPARATION {
     ignore_existing_gff_for_mapping: Boolean
 
     main:
-    
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // CLEAN AND CONVERT GFF / GTF TO GTF
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -53,12 +53,12 @@ workflow SHORT_READ_PREPARATION {
         ch_converted = CONVERT_TO_GTF(
             ch_input_with_gff.map { rec -> record(id: rec.id, gff: rec.reference_gff) }
         )
-        
+
         ch_input_with_gff = ch_input_with_gff.join(
             ch_converted.map{ rec -> record(id: rec.id, reference_gtf: rec.gtf) },
             by: 'id'
         )
-        
+
         ch_input = ch_input_without_gff.mix( ch_input_with_gff )
 
     } else {
@@ -66,7 +66,7 @@ workflow SHORT_READ_PREPARATION {
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // EXTRACT READS 
+    // EXTRACT READS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // make channel containing one pair of fastq files (or one single fastq file in case of single end)
@@ -85,9 +85,9 @@ workflow SHORT_READ_PREPARATION {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // DETECT IF SINGLE FASTQ FILES AND INTERLEAVED, SEPARATE THEM IF IT IS THE CASE
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     ch_reads = DEINTERLEAVE( ch_reads )
-    
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // QC ON RAW READS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -109,13 +109,13 @@ workflow SHORT_READ_PREPARATION {
 
         ch_cleaned_reads = FASTP( ch_reads )
 
-        ch_cleaned_reads = ch_cleaned_reads.filter { rec -> 
+        ch_cleaned_reads = ch_cleaned_reads.filter { rec ->
             if ( rec.reads == null ) {
                 log.warn("No short read left after short read filtering for ${rec.read_id} (sample ${rec.id})")
             }
             rec.reads != null
         }
-        
+
         ch_reads = ch_reads.join(ch_cleaned_reads, by: 'read_id')
 
         if ( !skip_fastqc && !skip_fastqc_cleaned ) {

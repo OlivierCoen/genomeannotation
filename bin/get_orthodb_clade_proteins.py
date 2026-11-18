@@ -39,11 +39,11 @@ sem = asyncio.Semaphore(MAX_PARALLEL_REQUESTS) # semaphore, to limit the number 
 
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--taxid-lineage', dest="taxid_lineage", type=str, required=True, 
+    parser.add_argument('--taxid-lineage', dest="taxid_lineage", type=str, required=True,
         help='List of NCBI taxids representing the organism and its parents, from the most specific to the most general'
     )
     return parser.parse_args()
-    
+
 
 @retry(
     stop=stop_after_delay(STOP_RETRY_AFTER_DELAY),
@@ -83,7 +83,7 @@ def get_clade_species(clade_taxid: str) -> list[str]:
 
 
 def get_most_specific_taxid(taxids: list[str], tree: dict | list) -> dict | None:
-    
+
     result = None
     if isinstance(tree, list):
         for subtree in tree:
@@ -103,7 +103,7 @@ def get_most_specific_taxid(taxids: list[str], tree: dict | list) -> dict | None
                         'name': tree.get('name', 'Unknown')
                     }
                     break
-                    
+
     return result
 
 
@@ -132,7 +132,7 @@ def main():
 
     logger.info("Get the lowest level clade related to the provided taxid lineage")
     clade_result = get_most_specific_taxid(lineage_taxids, species_tree)
-    
+
     if clade_result is None:
         raise ValueError(f"Could not find any matching taxid from lineage: {lineage_taxids}")
 

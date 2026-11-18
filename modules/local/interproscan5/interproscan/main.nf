@@ -11,7 +11,7 @@ process INTERPROSCAN5_INTERPROSCAN {
 
     input:
         record(
-            id: String,     
+            id: String,
             fasta: Path
         )
         interproscan5_db: Path
@@ -21,7 +21,7 @@ process INTERPROSCAN5_INTERPROSCAN {
             id: id,
             gff: file('*.gff3', optional: true)
         )
-    
+
     topic:
         tuple('interproscan', id, file('*.tsv', optional: true))  >> 'additional_results'
         tuple('interproscan', id, file('*.xml', optional: true))  >> 'additional_results'
@@ -33,13 +33,13 @@ process INTERPROSCAN5_INTERPROSCAN {
     def prefix = task.ext.prefix ?: "$id"
     def is_compressed = fasta.name.endsWith(".gz")
     def fasta_name = fasta.name.replace(".gz", "")
-    """    
-    # Note: since /opt/interproscan is read-only, we need to provide the path to the data through the conf 
+    """
+    # Note: since /opt/interproscan is read-only, we need to provide the path to the data through the conf
     # No parameter is exposed to do that...
     cp /opt/interproscan/interproscan.properties .
     sed -i "/^data\\.directory=/ s|.*|data.directory=\${PWD}/data|" interproscan.properties
     export INTERPROSCAN_CONF=\${PWD}/interproscan.properties
-        
+
     # uncompress proteome
     if ${is_compressed} ; then
         gzip -c -d ${fasta} > ${fasta_name}
@@ -52,7 +52,7 @@ process INTERPROSCAN5_INTERPROSCAN {
     fi
 
     mkdir tmp
-    
+
     /opt/interproscan/interproscan.sh \\
         --cpu ${task.cpus} \\
         --input ${fasta_name} \\
@@ -61,4 +61,3 @@ process INTERPROSCAN5_INTERPROSCAN {
         --tempdir tmp
     """
 }
-

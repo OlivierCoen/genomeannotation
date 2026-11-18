@@ -18,7 +18,7 @@ record Input {
     gff: Path
     busco_lineage: String
     proteome: Path
-    other_proteomes: Set<Path>
+    other_proteomes: List<Path>
 }
 
 workflow QUALITY_CONTROLS {

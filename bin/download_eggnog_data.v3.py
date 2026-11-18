@@ -37,7 +37,7 @@ def run(cmd: list[str], shell: bool = False):
 def decompress(file: Path):
     cmd = ['pigz', '-df', str(file)]
     run(cmd)
-    
+
 #####################################################
 # DOWNLOADER CLASS
 #####################################################
@@ -50,13 +50,13 @@ class Downloader:
 
     def download(self, url: str):
         cmd = [
-            'aria2c', 
-            '-s', str(self.ncpus), 
-            '-x', str(self.ncpus),  
-            '--optimize-concurrent-downloads', 
-            '--check-integrity=true', 
-            '--dir', 
-            str(self.data_path), 
+            'aria2c',
+            '-s', str(self.ncpus),
+            '-x', str(self.ncpus),
+            '--optimize-concurrent-downloads',
+            '--check-integrity=true',
+            '--dir',
+            str(self.data_path),
             url
         ]
         run(cmd)
@@ -65,13 +65,13 @@ class Downloader:
         self.download(url)
         file = data_path / url.split('/')[-1]
         decompress(file)
-        
+
     def untar_decompress(self, filename: str):
         file = self.data_path / filename
         cmd = ['tar', '-xzf', str(file), '-C', str(self.data_path)]
         run(cmd)
         file.unlink()
-    
+
     def download_annotations(self):
         for filename in ["eggnog.db", "eggnog.db.taxids.bin", "eggnog.db.fieldpresence.bin"]:
             self.download(BASE_URL + filename)
@@ -81,27 +81,27 @@ class Downloader:
             self.download(BASE_URL + 'go-basic.obo')
         except:
             self.download(GO_OBO_FALLBACK_URL)
-            
+
 
     def download_taxa(self):
         for filename in ["eggnog.taxa.db", "eggnog.taxa.db.traverse.pkl"]:
             self.download(BASE_URL + filename)
-    
+
     def download_diamond_db(self):
         self.download(BASE_URL + 'eggnog_proteins.dmnd')
-    
+
     def download_mmseqs_db(self):
         filename = 'mmseqs.tar.gz'
         url = BASE_URL + filename
         self.download(url)
         self.untar_decompress(filename)
-    
+
     def download_pfam_db(self):
         filename = 'mmseqs.tar.gz'
         url = BASE_URL + filename
         self.download(url)
         self.untar_decompress(filename)
-        
+
 
 #####################################################
 # MAIN
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     Path(data_path).mkdir(parents=True, exist_ok=True)
 
     downloader = Downloader(data_path, args.ncpus)
-    
+
     # Annotation DB
     downloader.download_annotations()
 

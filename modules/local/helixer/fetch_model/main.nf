@@ -22,8 +22,8 @@ process HELIXER_FETCHMODEL {
                  "Consider using Apptainer instead. See https://github.com/gglyptodon/helixer-docker for more information.")
     }
     """
-    mkdir models 
-    
+    mkdir models
+
     fetch_helixer_models.py \\
         --lineage $lineage \\
         --custom-path models

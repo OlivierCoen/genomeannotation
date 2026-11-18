@@ -31,7 +31,7 @@ workflow GENOME_PREPARATION {
 
     ch_checked_genome = CHECK_GENOME( ch_input )
     ch_prepared = ch_input.join(ch_checked_genome, by: 'id')
-    
+
     // ----------------------------------------------------------
     // COMPUTE STATS ABOUT GENOME
     // ----------------------------------------------------------

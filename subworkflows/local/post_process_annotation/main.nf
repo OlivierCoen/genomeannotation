@@ -54,7 +54,7 @@ workflow POST_PROCESS_ANNOTATION {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     if ( !skip_gff_cleaning ) {
-    
+
         ch_cleaned = CLEAN_ANNOTATION (
             ch_input,
             gff_fix_feature_locations_duplicated,
@@ -62,7 +62,7 @@ workflow POST_PROCESS_ANNOTATION {
             gff_filter_incomplete_gene_models
         )
         ch_input = ch_input.join( ch_cleaned, by: 'id' )
-    
+
         // NOTE: now the annotation is under the 'gff' key
     }
 

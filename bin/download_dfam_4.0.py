@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# 
+#
 # adapted from https://github.com/Dfam-consortium/FamDB
 """
 download_dfam.py - Interactive downloader for FamDB component files from Dfam.
@@ -262,13 +262,13 @@ def _run(cmd: list[str], shell: bool = False):
 
 def _download(url: str, data_path: str, ncpus: int):
     cmd = [
-        'aria2c', 
-        '-s', str(ncpus), 
-        '-x', str(ncpus),  
-        '--optimize-concurrent-downloads', 
-        '--check-integrity=true', 
-        '--dir', 
-        str(data_path), 
+        'aria2c',
+        '-s', str(ncpus),
+        '-x', str(ncpus),
+        '--optimize-concurrent-downloads',
+        '--check-integrity=true',
+        '--dir',
+        str(data_path),
         url
     ]
     _run(cmd)
@@ -408,7 +408,7 @@ def process_one(base_url, out_dir, prefix, component, partition, ncpus: int, dry
             os.remove(gz)
             return False
         print(f"    MD5 OK: {gz_name}")
-        
+
     # Decompress
     print(f"    Decompressing {gz_name} ...", end=" ", flush=True)
     _decompress(gz)
@@ -450,7 +450,7 @@ def parse_famdb_output(file: str):
 
     # turning lists into strings
     return  {k: ','.join(v) for k, v in components_to_partitions.items()}
-    
+
 
 
 def main():
@@ -564,17 +564,17 @@ def main():
 
     # CHANGED: replaced _prompt_components by get_components
     selected_components = get_components(
-        components, 
-        component_selection, 
-        sizes, 
+        components,
+        component_selection,
+        sizes,
         release=f"{major}.{minor}"
     )
 
     work = []
     for comp in selected_components:
         chosen = _prompt_partitions(
-            comp, 
-            components[comp], 
+            comp,
+            components[comp],
             components_to_partitions[comp],
             sizes.get(comp) if sizes else None
         )

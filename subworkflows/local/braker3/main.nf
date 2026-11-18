@@ -25,8 +25,8 @@ record Input {
     mappings: List<Mapping>
     long_read_mappings: List<Mapping>
     proteins_fasta: Path
-    tsebra_gtfs: Set<Path>
-    tsebra_hintsfiles: Set<Path>
+    tsebra_gtfs: List<Path>
+    tsebra_hintsfiles: List<Path>
 }
 
 
@@ -71,7 +71,7 @@ workflow BRAKER3 {
     ch_braker_out = BRAKER( ch_braker_input )
 
     ch_braker_out = ch_braker_out
-            .filter { rec -> 
+            .filter { rec ->
                 if ( rec.braker_gtf == null ) {
                     log.warn("Braker3 failed to predict any gene model for sample ${rec.id}. Skipping this sample.")
                 }
@@ -110,7 +110,7 @@ workflow BRAKER3 {
     ch_isoseq_braker_out = BRAKER_ISOSEQ( ch_isoseq_braker_input )
 
     ch_isoseq_braker_out = ch_isoseq_braker_out
-            .filter { rec -> 
+            .filter { rec ->
                 if ( rec.braker_gtf == null ) {
                     log.warn("Braker3 Isoseq failed to predict any gene model for sample ${rec.id}. Skipping this sample.")
                 }
@@ -144,7 +144,7 @@ workflow BRAKER3 {
                         }
                         newrec
                     }
-                   
+
     // ----------------------------------------------------------
     // MERGE ANNOTATIONS WHEN NECESSARY
     // ----------------------------------------------------------
@@ -153,7 +153,7 @@ workflow BRAKER3 {
     // normally, tsebra_gtfs and tsebra_hintsfiles should be already both present or both absent
     ch_not_to_merge         = ch_input.filter{ rec -> rec.tsebra_gtfs.size() == 0 }
     ch_to_merge_with_tsebra = ch_input.filter{ rec -> rec.tsebra_gtfs.size() > 0  }
-                                
+
     ch_tsebra_input = ch_to_merge_with_tsebra.map{ rec ->
         record(
             id: rec.id,

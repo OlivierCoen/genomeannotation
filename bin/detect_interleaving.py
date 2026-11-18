@@ -37,7 +37,7 @@ def parse_args():
     parser.add_argument("--file", type=Path, required=True)
     parser.add_argument("--npairs", type=int, default=DEFAULT_NPAIRS, help="Number of pairs to check")
     return parser.parse_args()
-    
+
 
 def open_any(path):
     with open(path, "rb") as fin:
@@ -109,7 +109,7 @@ def main():
         fout.write(interleaved)
 
     logger.info(f"Interleaved: {interleaved}")
-        
+
 
 if __name__ == "__main__":
     main()

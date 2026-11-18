@@ -74,13 +74,13 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    
+
     ch_pipeline_out = NFCORE_GENOMEANNOTATION ( ch_samplesheet )
 
     //
     // SUBWORKFLOW: Run completion tasks
     //
-    
+
     PIPELINE_COMPLETION (
         params.email,
         params.email_on_fail,
@@ -129,13 +129,13 @@ output {
     }
 
     additional_results {
-        path { tool_name, id, files -> 
+        path { tool_name, id, files ->
             files >> "${id}/${tool_name}/"
         }
     }
 
     logs {
-        path { tool_name, id, files -> 
+        path { tool_name, id, files ->
             files >> "${id}/${tool_name}/"
         }
     }

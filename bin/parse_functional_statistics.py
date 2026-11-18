@@ -41,8 +41,8 @@ def parse_line_with_numbers(line: str, key: str):
     """
     components = line.strip().split(" ")
     return {
-        'feature': components[1], 
-        'attribute': components[3].lstrip('<').rstrip('>'), 
+        'feature': components[1],
+        'attribute': components[3].lstrip('<').rstrip('>'),
         key: components[6]
     }
 
@@ -53,7 +53,7 @@ def parse_table(fin: TextIOWrapper) -> dict:
     # parsing the feature mentionned in first line of the table header
     # such a line is like like:
     # |                         |      Nb holded by       |    Nb three_prime_utr   |
-    components = [s for s in line.strip().split(' ') if s not in ['', '|']] 
+    components = [s for s in line.strip().split(' ') if s not in ['', '|']]
     # components is like:
     # ['Nb', 'holded', 'by', 'Nb', 'gene']
     # ['Nb', 'holded', 'by', 'Nb', 'transcript', 'Nb', 'gene', 'with']
@@ -65,7 +65,7 @@ def parse_table(fin: TextIOWrapper) -> dict:
     line = next(fin)
     while True:
         line = next(fin)
-        components = [s for s in line.strip().split(' ') if s not in ['', '|']] 
+        components = [s for s in line.strip().split(' ') if s not in ['', '|']]
         attribute = components[0]
         parsed_dict[attribute] = components[1]
         # the last attribute in such tables is 'dbxref'
@@ -82,10 +82,10 @@ def parse_table(fin: TextIOWrapper) -> dict:
 def parse_stat_file(stat_file: Path):
     attribute_dicts = []
     nb_holded_by_feature_dicts = []
-    
+
     with open(stat_file, "r") as fin:
         while True:
-            
+
             try:
                 line = next(fin)
             except StopIteration:
@@ -96,7 +96,7 @@ def parse_stat_file(stat_file: Path):
                 continue
 
             line = line.strip()
-            
+
             if line.startswith("Nb"):
                 # lines like:
                 # Nb cds = 1433
@@ -121,7 +121,7 @@ def parse_stat_file(stat_file: Path):
                 # head of new table reached
                 parsed_dict = parse_table(fin)
                 nb_holded_by_feature_dicts.append(parsed_dict)
-                
+
             else:
                 logger.warning(f"Unrecognised line: {line}")
 
@@ -131,7 +131,7 @@ def parse_stat_file(stat_file: Path):
 def write_attribute_dicts(attribute_dicts: list[dict], prefix: str, suffix: str):
     found_attributes = list(set([d['attribute'] for d in attribute_dicts]))
     for attribute in found_attributes:
-        
+
         attr_dicts = [d for d in attribute_dicts if d['attribute'] == attribute]
 
         outfile = f"{prefix}.{attribute}.{suffix}"
@@ -204,12 +204,12 @@ class StatParser:
         for level1 in self.parsed_results:
             # looping through second level features (typically, 'transcript' or 'mrna')
             for level2 in self.parsed_results[level1]:
-                
+
                 attribute_dicts = self.parsed_results[level1][level2]['attributes']
                 write_attribute_dicts(attribute_dicts, prefix, ATTRIBUTE_STAT_OUTFILE_SUFFIX)
-                
+
                 nb_holded_by_feature_dicts = self.parsed_results[level1][level2]['nb_holded_by_feature']
-                write_nb_holded_attributes_dicts(nb_holded_by_feature_dicts, prefix, NB_HOLDED_BY_FEATURE_OUTFILE_SUFFIX)      
+                write_nb_holded_attributes_dicts(nb_holded_by_feature_dicts, prefix, NB_HOLDED_BY_FEATURE_OUTFILE_SUFFIX)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

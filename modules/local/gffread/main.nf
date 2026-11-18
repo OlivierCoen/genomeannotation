@@ -1,4 +1,4 @@
-nextflow.enable.types = true 
+nextflow.enable.types = true
 
 process GFFREAD {
 

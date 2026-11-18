@@ -12,7 +12,7 @@ include { METAEUK_EASYPREDICT                                   } from '../../..
 record Input {
     id: String
     fasta: Path
-    training_proteins: Set<Path>
+    training_proteins: List<Path>
     mmseqs_db: String
 }
 

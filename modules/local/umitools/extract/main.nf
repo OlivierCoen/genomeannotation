@@ -12,7 +12,7 @@ process UMITOOLS_EXTRACT {
 
     input:
         record(
-            id: String, 
+            id: String,
             read_id: String,
             reads: List<Path>
         )

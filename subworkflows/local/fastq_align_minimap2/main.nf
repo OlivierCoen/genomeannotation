@@ -39,7 +39,7 @@ workflow FASTQ_ALIGN_MINIMAP2 {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     ch_aligned = MINIMAP2_ALIGN( ch_input_with_index )
-        
+
     emit:
     mapped = ch_input.join(ch_aligned, by: 'read_id')
 }

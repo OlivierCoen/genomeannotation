@@ -39,9 +39,9 @@ process FASTPLONG {
         --out ${prefix}.fq.gz \\
         --thread ${task.cpus} \\
         | tee fastplong.log
-        
+
     # checking if filtered file is empty
-    if [ \$(zcat ${prefix}.fq.gz | head -c 1 | wc -c) -eq "0" ]; then 
+    if [ \$(zcat ${prefix}.fq.gz | head -c 1 | wc -c) -eq "0" ]; then
         echo "${prefix}.fq.gz is empty... Removing file to avoid downstream issues"
         rm ${prefix}.fq.gz
     fi

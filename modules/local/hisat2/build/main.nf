@@ -36,7 +36,7 @@ process HISAT2_BUILD {
     if [ "${is_compressed}" == "true" ]; then
         gzip -c -d ${fasta} > ${fasta_name}
     fi
-    
+
     mkdir hisat2
     hisat2-build \\
         -p ${task.cpus} \\

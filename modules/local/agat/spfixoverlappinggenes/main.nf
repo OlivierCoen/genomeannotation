@@ -15,7 +15,7 @@ process AGAT_SPFIXOVERLAPPINGGENES {
     output:
         record(
             id: id,
-            gff: file("*.overlaps_fixed.gff") 
+            gff: file("*.overlaps_fixed.gff")
         )
 
     topic:

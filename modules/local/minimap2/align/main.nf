@@ -33,7 +33,7 @@ process MINIMAP2_ALIGN {
     def args  = task.ext.args ?: ''
     def args2 = task.ext.args2 ?: ''
     def prefix = task.ext.prefix ?: "$read_id"
-    // samtools flags: 
+    // samtools flags:
     // -F 4 : exclude read unmapped
     // -F 256: exclude if not primary alignment
     """

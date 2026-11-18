@@ -12,8 +12,8 @@ include { GFFREAD as FROM_OTHER_ANNOTATIONS           } from '../../../modules/l
 record Input {
     id: String
     gff: Path
-    intermediate_annotations: Set<Path>
-    alternative_annotations: Set<Path>
+    intermediate_annotations: List<Path>
+    alternative_annotations: List<Path>
     previous_annotation: Path?
 }
 
@@ -27,29 +27,29 @@ workflow EXTRACT_SEQUENCES {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // EXTRACT PROTEOME FROM ACTUAL ANNOTATION
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
+
     ch_proteome = FROM_MAIN_ANNOTATION( ch_input )
-    
-    ch_input = ch_input.join( 
-        ch_proteome.map { rec -> record(id: rec.id, proteome: rec.proteins) }, 
+
+    ch_input = ch_input.join(
+        ch_proteome.map { rec -> record(id: rec.id, proteome: rec.proteins) },
         by: 'id'
-    ) 
+    )
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // GETTING PROTEOMES FOR ALL INTERMEDIATES + ALTERNATIVES [ + PREVIOUS ONE ] ) ANNOTATIONS
     // THIS WILL BE USED BY BUSCO
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    ch_others_input = ch_input.flatMap { rec -> 
+
+    ch_others_input = ch_input.flatMap { rec ->
         def alt_gff = rec.alternative_annotations ?: []
         def interm_gffs = rec.intermediate_annotations ?: []
         def prev_gff = rec.previous_annotation ? [rec.previous_annotation]: []
         def other_gffs = alt_gff + interm_gffs + prev_gff
         other_gffs.collect { gff_file -> record(id: rec.id, gff: gff_file, fasta: rec.fasta) }
     }
-                                 
+
     ch_other_proteomes = FROM_OTHER_ANNOTATIONS( ch_others_input )
-    
+
     ch_other_proteomes = ch_other_proteomes.map { rec -> tuple(rec.id, rec.proteins) }
                             .groupTuple()
                             .map { id, fasta_list -> record(id: id, other_proteomes: fasta_list) }

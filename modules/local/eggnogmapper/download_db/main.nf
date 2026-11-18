@@ -13,7 +13,7 @@ process EGGNOGMAPPER_DOWNLOADDB {
 
     output:
         file("data", type: 'dir')
-        
+
     topic:
         tuple("${task.process}", 'aria2', eval("aria2c -v | head -1 | sed 's/aria2 version //g'"))     >> 'versions'
         tuple("${task.process}", 'pigz',  eval("pigz --version 2>&1 | sed 's/pigz //g'"))              >> 'versions'

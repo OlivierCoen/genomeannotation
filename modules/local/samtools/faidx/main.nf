@@ -30,7 +30,7 @@ process SAMTOOLS_FAIDX {
     if [ "${is_compressed}" == "true" ]; then
         gzip -c -d ${fasta} > ${fasta_name}
     fi
-    
+
     samtools \\
         faidx \\
          ${fasta_name} \\
