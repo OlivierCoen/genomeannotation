@@ -28,62 +28,64 @@ workflow REPORTING {
     // VERSIONS
     // ------------------------------------------------------------------------------------
 
+    //
     // Collate and save software versions
     //
+    def topic_versions = channel.topic("versions")
+        .distinct()
+        .branch { entry ->
+            versions_file: entry instanceof Path
+            versions_tuple: true
+        }
+    
+    def topic_versions_string = topic_versions.versions_tuple
+        .map { process, tool, version ->
+            [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
+        }
+        .groupTuple(by:0)
+        .map { process, tool_versions ->
+            tool_versions.unique().sort()
+            "${process}:\n${tool_versions.join('\n')}"
+        }
 
-    def topic_versions_string = channel.topic("versions")
-                                .map { process, tool, version ->
-                                    [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
-                                }
-                                .groupTuple()
-                                .map { process, tool_versions ->
-                                    tool_versions.unique().sort()
-                                    "${process}:\n${tool_versions.join('\n')}"
-                                }
-
-    ch_collated_versions = topic_versions_string
-                            .collectFile(
-                                storeDir: "${outdir}/pipeline_info",
-                                name: 'nf_core_'  +  'genomeannotation_software_'  + 'mqc_'  + 'versions.yml',
-                                sort: true,
-                                newLine: true
-                            )
+    def ch_collated_versions = softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
+        .mix(topic_versions_string)
+        .collectFile(
+            storeDir: "${outdir}/pipeline_info",
+            name: 'nf_core_'  +  'genomeannotation_software_'  + 'mqc_'  + 'versions.yml',
+            sort: true,
+            newLine: true
+        )
 
     // ------------------------------------------------------------------------------------
     // PREPARE MULTIQC INPUT
     // ------------------------------------------------------------------------------------
 
-    ch_multiqc_config        = channel.fromPath(
-        "$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+    // params
+    def ch_summary_params = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
 
-    ch_multiqc_custom_config = multiqc_config ?
-        channel.fromPath(multiqc_config, checkIfExists: true) :
-        channel.empty()
+    // workflow summary
+    def ch_workflow_summary = channel.value(paramsSummaryMultiqc(ch_summary_params))
+    ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml')
 
-    ch_multiqc_config_list = ch_multiqc_config
+    // logo
+    def ch_multiqc_logo = multiqc_logo ? channel.fromPath(multiqc_logo, checkIfExists: true) : channel.of([])
+
+    // config
+    def ch_multiqc_config = channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+    def ch_multiqc_custom_config = multiqc_config ? channel.fromPath(multiqc_config, checkIfExists: true) : channel.empty()
+
+    def ch_multiqc_config_list = ch_multiqc_config
                                 .mix( ch_multiqc_custom_config )
                                 .collect()
                                 .map { file_list -> file_list.toSorted() }
 
-    ch_multiqc_logo          = multiqc_logo ?
-        channel.fromPath(multiqc_logo, checkIfExists: true) :
-        channel.of([])
-
-    summary_params      = paramsSummaryMap(
-        workflow,
-        parameters_schema: "nextflow_schema.json"
-    )
-    ch_workflow_summary = channel.value(paramsSummaryMultiqc(summary_params))
-
-    ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml')
-
-    ch_multiqc_custom_methods_description = multiqc_methods_description ?
+    // description
+    def ch_multiqc_custom_methods_description = multiqc_methods_description ?
         file(multiqc_methods_description, checkIfExists: true) :
         file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
 
-    ch_methods_description     = channel.value(
-        methodsDescriptionText(ch_multiqc_custom_methods_description)
-    )
+    def ch_methods_description = channel.value(methodsDescriptionText(ch_multiqc_custom_methods_description)
 
     // ------------------------------------------------------------------------------------
     // DATA

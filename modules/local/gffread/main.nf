@@ -23,16 +23,16 @@ process GFFREAD {
             proteins: file("*.proteins.faa")
         )
 
-    //topic:
-    // tuple('gffread', id, file(".mrna.fna")) >> 'additional_results'
-    // tuple('gffread', id, file(".cds.fna")) >> 'additional_results'
-    //    tuple("${task.process}", 'agat', eval("agat_sp_extract_sequences.pl -h | sed -n 's/.*(AGAT) - Version: \\(.*\\) .*/\\1/p'")) >> 'versions'
+    topic:
+        tuple('gffread', id, file(".mrna.fna")) >> 'additional_results'
+        tuple('gffread', id, file(".cds.fna"))  >> 'additional_results'
+        tuple("${task.process}", 'agat', eval("agat_sp_extract_sequences.pl -h | sed -n 's/.*(AGAT) - Version: \\(.*\\) .*/\\1/p'")) >> 'versions'
 
     script:
     def args        = task.ext.args   ?: ''
     def prefix      = "${gff.baseName}"
     def is_compressed = fasta.getExtension() == "gz" ? true : false
-    def genome_fasta = is_compressed ? fasta.getBaseName() : fasta
+    def genome_fasta = is_compressed ? fasta.getBaseName() : fasta.name
     """
     if [ "${is_compressed}" == "true" ]; then
         gzip -c -d ${fasta} > ${genome_fasta}

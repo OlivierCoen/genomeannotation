@@ -12,7 +12,7 @@ process SEQTK_SAMPLE {
     input:
         record(
             id: String,
-            reads: Set<Path>
+            reads: List<Path>
         )
         sample_size: Number
 
@@ -24,7 +24,7 @@ process SEQTK_SAMPLE {
 
     topic:
         tuple("${task.process}", 'seqtk', eval("seqtk 2>&1 | awk 'NR==3' | sed 's/Version: //g'")) >> 'versions'
-        tuple("${task.process}", 'pigz', eval("pigz --version 2>&1 | sed 's/pigz //g'"))           >> 'versions'
+        tuple("${task.process}", 'pigz',  eval("pigz --version 2>&1 | sed 's/pigz //g'"))          >> 'versions'
 
     script:
     def args   = task.ext.args ?: ''

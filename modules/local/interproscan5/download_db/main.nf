@@ -1,9 +1,14 @@
 nextflow.enable.types = true
 
+def getTarballFileStem(url: String){
+    def filename = url.tokenize('/')[-1]
+    return filename.replaceFirst(/\.tar\.gz$/, '')
+}
+
 process INTERPROSCAN5_DOWNLOADDB {
 
     label 'process_medium'
-    tag "${db_url.tokenize('/')[-1] - '.tar.gz'}"
+    tag "${getTarballFileStem(db_url)}"
 
     errorStrategy {
         if (task.exitStatus == 100) {

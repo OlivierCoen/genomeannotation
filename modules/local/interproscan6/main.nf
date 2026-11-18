@@ -3,15 +3,15 @@ nextflow.enable.types = true
 include { removeKeyValueArgs; 
           buildCacheDirURI;
           getWorkflowConfigPaths;
-          workflowHasResumeFlag } from '../../../subworkflows/local/utils_nfcore_genomeannotation_pipeline'
+          workflowHasResumeFlag } from "../../../subworkflows/local/utils_nfcore_genomeannotation_pipeline"
 
 // hard-coded versions to ensure reproducibility
 def getNextflowVersion(){
-    return '26.10.5'
+    return "26.10.5"
 }
 
 def getInterproscanVersion(){
-    return '6.0.3.0'
+    return "6.0.3.0"
 }
 
 
@@ -21,7 +21,7 @@ def getInterproscanVersion(){
 process INTERPROSCAN6 {
     
     tag "$id"
-    label 'process_high'
+    label "process_high"
 
     input:
         record(
@@ -32,18 +32,18 @@ process INTERPROSCAN6 {
     output:
         record(
             id: id,
-            gff: file('results/*.gff3', optional: true)
+            gff: file("results/*.gff3", optional: true)
         )
     
     topic:
-        tuple('interproscan', id, file('results/*.tsv', optional: true))  >> 'additional_results'
-        tuple('interproscan', id, file('results/*.xml', optional: true))  >> 'additional_results'
-        tuple('interproscan', id, file('results/*.json', optional: true)) >> 'additional_results'
-        tuple("${task.process}", 'nextflow',     getNextflowVersion())  >> 'versions'
-        tuple("${task.process}", 'interproscan', getInterproscanVersion()) >> 'versions'
+        tuple("interproscan", id, file("results/*.tsv", optional: true))  >> "additional_results"
+        tuple("interproscan", id, file("results/*.xml", optional: true))  >> "additional_results"
+        tuple("interproscan", id, file("results/*.json", optional: true)) >> "additional_results"
+        tuple("${task.process}", "nextflow",     getNextflowVersion())  >> "versions"
+        tuple("${task.process}", "interproscan", getInterproscanVersion()) >> "versions"
 
     exec:
-    def args    = task.ext.args ?: ''
+    def args    = task.ext.args ?: ""
 
     // ---------------------------------------------------
     // CACHE
@@ -62,19 +62,19 @@ process INTERPROSCAN6 {
     // Excluded so the nested run falls back to its own defaults, except shared, namespaced
     // storage locations we still want it to reuse.
     def nxf_passthrough = [
-        'NXF_HOME',
-        'NXF_ASSETS',
-        'NXF_TEMP',
-        'NXF_PLUGINS_DIR',
-        'NXF_SINGULARITY_LIBRARYDIR',
-        'NXF_CONDA_CACHEDIR',
-        'NXF_SINGULARITY_CACHEDIR',
-        'NXF_CHARLIECLOUD_CACHEDIR',
-        'NXF_SPACK_CACHEDIR',
+        "NXF_HOME",
+        "NXF_ASSETS",
+        "NXF_TEMP",
+        "NXF_PLUGINS_DIR",
+        "NXF_SINGULARITY_LIBRARYDIR",
+        "NXF_CONDA_CACHEDIR",
+        "NXF_SINGULARITY_CACHEDIR",
+        "NXF_CHARLIECLOUD_CACHEDIR",
+        "NXF_SPACK_CACHEDIR",
     ]
-    def child_env = System.getenv()
-        .findAll { k, v -> !(k.startsWith('NXF') || k.startsWith('TOWER')) || k in nxf_passthrough }
-        .collect { k, v -> "${k}=${v}" }
+    def child_env = System.getenv().findAll { 
+        k, v -> !(k.startsWith("NXF") || k.startsWith("TOWER")) || k in nxf_passthrough 
+    }
 
     // setting nextflow version in env vars
     child_env << "NXF_VER=${getNextflowVersion()}"
@@ -83,18 +83,18 @@ process INTERPROSCAN6 {
     // PROFILES
     // ---------------------------------------------------
 
-    def valid_profiles = workflow.profile.tokenize(',').findAll { !it.startsWith('test_') }
+    def valid_profiles = workflow.profile.tokenize(",").findAll { profile -> !profile.startsWith("test_") }
 
     // ---------------------------------------------------
     // CONFIGS
     // ---------------------------------------------------
 
-    // searches if the parent nextflow run command had config files provided with '-c'
-    def config_paths = getWorkflowConfigPaths('-c')
+    // searches if the parent nextflow run command had config files provided with "-c"
+    def config_paths = getWorkflowConfigPaths("-c")
     def config_arg = config_paths ? "-c $config_paths": ""
 
-    // searches if the parent nextflow run command had config files provided with '-C'
-    def overriding_config_paths = getWorkflowConfigPaths('-C')
+    // searches if the parent nextflow run command had config files provided with "-C"
+    def overriding_config_paths = getWorkflowConfigPaths("-C")
     def overriding_config_arg = overriding_config_paths ? "-C $overriding_config_paths": ""
 
     // ---------------------------------------------------
@@ -104,24 +104,24 @@ process INTERPROSCAN6 {
     // drop --input/--datadir and their values from the user-provided arg list
     def ips_args = removeKeyValueArgs([args: args, excluded_args: ["--input", "--datadir"]])
 
-    def resume_arg = workflowHasResumeFlag() ? '-resume' : ''
+    def resume_arg = workflowHasResumeFlag() ? "-resume" : ""
 
     // Construct nextflow command
     def nxf_cmd = [
-        'nextflow',
-            '-log .nextflow.log',
-            'run',
-            'ebi-pf-team/interproscan6',
+        "nextflow",
+            "-log .nextflow.log",
+            "run",
+            "ebi-pf-team/interproscan6",
             "-r ${getInterproscanVersion()}",
-            "-profile ${valid_profiles.join(',')}",
+            "-profile ${valid_profiles.join(",")}",
             config_arg,
             overriding_config_arg,
-            '-ansi-log false',
+            "-ansi-log false",
             resume_arg,
             "--input $fasta",
             "--datadir data",
-            ips_args.join(' '),
-            "--outdir ${task.workDir}/results",
+            ips_args.join(" "),
+            "--outdir ${task.workDir}/results"
     ].minus("").join(" ")
         
     // Copy command to shell script in work dir for reference/debugging.

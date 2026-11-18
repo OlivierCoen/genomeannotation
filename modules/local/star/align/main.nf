@@ -12,7 +12,7 @@ process STAR_ALIGN {
     input:
         record(
             id: String,
-            reads: Set<Path>,
+            reads: List<Path>,
             read_id: String,
             index: Path
         )

@@ -331,7 +331,7 @@ def parseSamplesheet() {
 def removeKeyValueArgs(Map opts){
     // Clean a string of space-separated arguments (or a list) by dropping
     // excluded flags, their values, and their key=value forms.
-    def args_list = opts.args instanceof List ? opts.args : opts.args.tokenize()
+    def args_list = opts.args instanceof List ? opts.args.toList() : opts.args.tokenize().toList()
     def excluded_args = opts.excluded_args as List
 
     args_list.withIndex().findResults { arg, i ->

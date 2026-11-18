@@ -26,13 +26,13 @@ process TSEBRA_TSEBRA {
     topic:
         tuple('tsebra', id, file("*.tsv")) >> 'additional_results'
         // WARN: Version information not provided by tool on CLI. Please update this string when bumping container versions.
-        tuple("${task.process}", 'tsebra', "1.1.2.5")          >> 'versions'
+        tuple("${task.process}", 'tsebra', "1.1.2.5") >> 'versions'
 
     script:
     def args        = task.ext.args   ?: ''
     def prefix      = task.ext.prefix ?: "$id"
-    def gtf_arg     = '-g ' + gtfs.collect { "$it" }.join(',')
-    def hints_arg   = '-e ' + hintsfiles.collect { "$it" }.join(',')
+    def gtf_arg     = '-g ' + gtfs.join(',')
+    def hints_arg   = '-e ' + hintsfiles.join(',')
 
     """
     tsebra.py \\

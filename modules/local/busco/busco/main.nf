@@ -43,7 +43,7 @@ process BUSCO_BUSCO {
         './*-busco/*/prodigal_output/predicted_genes/tmp/',
     ]
     def bbtools_memory_preferred = task.memory * 0.25
-    def bbtools_memory_minimum = 120.Mb
+    def bbtools_memory_minimum = 120.MB
     def bbtools_memory = bbtools_memory_preferred > bbtools_memory_minimum ? "${bbtools_memory_preferred.toGiga()}g" : "${bbtools_memory_minimum.toMega()}m"
     """
     export BUSCO_BBTOOLS_MEMORY=${bbtools_memory}

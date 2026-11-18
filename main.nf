@@ -40,13 +40,7 @@ workflow NFCORE_GENOMEANNOTATION {
     //
     // WORKFLOW: Run pipeline
     //
-    ch_pipeline_out = GENOMEANNOTATION (
-        samplesheet,
-        params.multiqc_config,
-        params.multiqc_logo,
-        params.multiqc_methods_description,
-        params.outdir,
-    )
+    ch_pipeline_out = GENOMEANNOTATION ( samplesheet )
 
     emit:
     results            = ch_pipeline_out.results
@@ -80,9 +74,8 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    ch_pipeline_out = NFCORE_GENOMEANNOTATION (
-        PIPELINE_INITIALISATION.out.samplesheet
-    )
+    
+    ch_pipeline_out = NFCORE_GENOMEANNOTATION ( ch_samplesheet )
 
     //
     // SUBWORKFLOW: Run completion tasks
