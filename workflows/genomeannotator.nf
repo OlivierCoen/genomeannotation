@@ -40,7 +40,7 @@ record Samplesheet {
 }
 
 
-workflow GENOMEANNOTATOR {
+workflow GENOMEANNOTATION {
 
     take:
     ch_main: Channel<Samplesheet>
