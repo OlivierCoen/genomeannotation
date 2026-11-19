@@ -20,8 +20,6 @@ process RED {
         tuple("${task.process}", 'red', eval("Red 2>&1 | grep Version | cut -d' ' -f2")) >> 'versions'
 
     script:
-    def args    = task.ext.args ?: ''
-    def prefix  = task.ext.prefix ?: "${id}"
     def is_compressed      = fasta.getExtension() == "gz"    ? true : false
     def fasta_stem = fasta.name.replaceFirst(/\.(f(ast|s|n)?a|fa)(\.gz)?$/, '')
     """

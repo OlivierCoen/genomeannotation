@@ -43,7 +43,7 @@ workflow TRAINING_PROTEIN_PREPARATION {
 
     if ( orthodb_local ) {
 
-        ch_orthodb_local = channel.fromPath( orthodb_local, checkExists: true )
+        ch_orthodb_local = channel.fromPath( orthodb_local, checkIfExists: true )
                             .map { file -> record(orthodb_proteins: file) }
 
         ch_input = ch_input.combine( ch_orthodb_local )
@@ -53,7 +53,8 @@ workflow TRAINING_PROTEIN_PREPARATION {
         if ( !skip_orthodb_download ) {
 
             ch_prepared_orthodb = GET_ORTHODB_CLADE_PROTEINS(
-                ch_input.map { rec -> rec.subMap(['species', 'taxid_lineage']) }.unique()
+                ch_input.map { rec -> rec.subMap(['species', 'taxid_lineage']) }.unique(),
+                orthodb_version
             )
             ch_input = ch_input.join(ch_prepared_orthodb, by: 'species')
 

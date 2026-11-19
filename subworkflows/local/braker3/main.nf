@@ -23,12 +23,12 @@ record Input {
     fasta: Path
     species: String
     mappings: List<Mapping>
+    short_read_mappings: List<Mapping>
     long_read_mappings: List<Mapping>
     proteins_fasta: Path
-    tsebra_gtfs: List<Path>
-    tsebra_hintsfiles: List<Path>
+    supplied_tsebra_gtfs: List<Path>
+    supplied_tsebra_hintsfiles: List<Path>
 }
-
 
 workflow BRAKER3 {
 
@@ -108,42 +108,39 @@ workflow BRAKER3 {
     // ----------------------------------------------------------
 
     ch_isoseq_braker_out = BRAKER_ISOSEQ( ch_isoseq_braker_input )
-
-    ch_isoseq_braker_out = ch_isoseq_braker_out
-            .filter { rec ->
-                if ( rec.braker_gtf == null ) {
-                    log.warn("Braker3 Isoseq failed to predict any gene model for sample ${rec.id}. Skipping this sample.")
-                }
-                rec.braker_gtf != null
-            }
-            .map { rec -> record(
-                    id: rec.id,
-                    isoseq_braker_gtf: rec.braker_gtf,
-                    isoseq_braker_hintsfile: rec.braker_hintsfile
-                )
-            }
-
-
+                            .filter { rec ->
+                                if ( rec.braker_gtf == null ) {
+                                    log.warn("Braker3 Isoseq failed to predict any gene model for sample ${rec.id}. Skipping this sample.")
+                                }
+                                rec.braker_gtf != null
+                            }.map { rec -> record(
+                                    id: rec.id,
+                                    isoseq_braker_gtf: rec.braker_gtf,
+                                    isoseq_braker_hintsfile: rec.braker_hintsfile
+                                )
+                            }
 
     // ----------------------------------------------------------
     // ASSOCIATING BRAKER RESULTS TO INPUT
     // ----------------------------------------------------------
 
-    ch_input = ch_input
-                    .join(ch_braker_out, by: 'id', remainder: true)
-                    .join(ch_isoseq_braker_out, by: 'id', remainder: true)
-                    .filter{ rec -> rec.braker_gtf != null || rec.isoseq_braker_gtf != null } // keeping only ercords for which at least a braker gtf is present
-                    .map { rec ->
-                        def newrec = rec.subMap(rec.keySet() - ['braker_gtf', 'braker_hintsfile', 'isoseq_braker_gtf', 'isoseq_braker_hintsfile']) + record(
-                            tsebra_gtfs: rec.supplied_tsebra_gtfs + [rec.braker_gtf, rec.isoseq_braker_gtf].findAll(),
-                            tsebra_hintsfiles: rec.supplied_tsebra_hintsfiles + [rec.braker_hintsfile, rec.isoseq_braker_hintsfile].findAll()
-                        )
-                        // checking that GTFs and Hintfiles for TSEBRA are the same number
-                        if (newrec.tsebra_gtfs.size() != newrec.tsebra_hintsfiles.size() ) {
-                            error("Different number of GTFs and Hintfiles given to TSEBRA. Please check the output of Braker runs.")
-                        }
-                        newrec
+    ch_main = ch_input
+                .join(ch_braker_out, by: 'id', remainder: true)
+                .join(ch_isoseq_braker_out, by: 'id', remainder: true)
+                .filter{ rec -> rec.braker_gtf != null || rec.isoseq_braker_gtf != null } // keeping only records for which at least a braker gtf is present
+                .map { rec ->
+                    // merging supplied and newly created tsebra files
+                    def tsebra_gtfs       = rec.supplied_tsebra_gtfs       + [rec.braker_gtf,       rec.isoseq_braker_gtf      ].findAll{ gtf -> gtf != null }.toList()
+                    def tsebra_hintsfiles = rec.supplied_tsebra_hintsfiles + [rec.braker_hintsfile, rec.isoseq_braker_hintsfile].findAll{ gtf -> gtf != null }.toList()
+                    // creating new record
+                    def keys_to_keep = rec.keySet() - ['braker_gtf', 'braker_hintsfile', 'isoseq_braker_gtf', 'isoseq_braker_hintsfile']
+                    def newrec = rec.subMap(keys_to_keep) + record(tsebra_gtfs: tsebra_gtfs, tsebra_hintsfiles: tsebra_hintsfiles)
+                    // checking that GTFs and Hintfiles for TSEBRA are the same number
+                    if (newrec.tsebra_gtfs.size() != newrec.tsebra_hintsfiles.size() ) {
+                        error("Different number of GTFs and Hintfiles given to TSEBRA. Please check the output of Braker runs.")
                     }
+                    newrec
+                }
 
     // ----------------------------------------------------------
     // MERGE ANNOTATIONS WHEN NECESSARY
@@ -151,8 +148,8 @@ workflow BRAKER3 {
 
     // separate inputs that need to be merged from the rest
     // normally, tsebra_gtfs and tsebra_hintsfiles should be already both present or both absent
-    ch_not_to_merge         = ch_input.filter{ rec -> rec.tsebra_gtfs.size() == 0 }
-    ch_to_merge_with_tsebra = ch_input.filter{ rec -> rec.tsebra_gtfs.size() > 0  }
+    ch_not_to_merge         = ch_main.filter{ rec -> rec.tsebra_gtfs.size() == 0 }
+    ch_to_merge_with_tsebra = ch_main.filter{ rec -> rec.tsebra_gtfs.size() > 0  }
 
     ch_tsebra_input = ch_to_merge_with_tsebra.map{ rec ->
         record(

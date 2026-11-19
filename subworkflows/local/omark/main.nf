@@ -34,7 +34,7 @@ workflow OMARK {
 
     if ( omamer_db ) {
         //log.info "Using the provided OMAMER database: ${omamer_db}"
-        ch_omark_db = channel.fromPath( omamer_db, checkExists: true )
+        ch_omark_db = channel.fromPath( omamer_db, checkIfExists: true )
     } else {
         ch_omark_db = DOWNLOADDB( omamer_db_url )
     }
@@ -50,7 +50,7 @@ workflow OMARK {
 
     ch_transcript_isoforms = EXTRACT_TRANSCRIPT_ISOFORMS( ch_input )
 
-    ch_input = ch_input
+    ch_main = ch_input
                 .join( ch_omamer_search_out, by: 'id' )
                 .join( ch_transcript_isoforms, by: 'id' )
 
@@ -58,8 +58,13 @@ workflow OMARK {
     // OMARK
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_omark_out = RUN_OMARK(
-        ch_input.map { rec -> record(id: rec.id, fasta: rec.proteome, omamer: rec.omamer, transcript_isoforms: rec.transcript_isoforms) },
+    RUN_OMARK(
+        ch_main.map { rec -> record(
+            id: rec.id,
+            fasta: rec.proteome,
+            omamer: rec.omamer,
+            transcript_isoforms: rec.transcript_isoforms
+        )},
         ch_omark_db
     )
 

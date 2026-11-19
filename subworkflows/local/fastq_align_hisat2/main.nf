@@ -37,6 +37,10 @@ workflow FASTQ_ALIGN_HISAT2 {
 
         ch_input_with_gtf = ch_input.filter{ rec -> rec.reference_gtf != null }
 
+        ch_input_without_gtf = ch_input
+                                .filter{ rec -> rec.reference_gtf == null }
+                                .map{ rec -> rec + record(splice_sites: null, exons: null) }
+
         ch_reference_gtf = ch_input_with_gtf
                                 .map{ rec -> record(id: rec.id, gtf: rec.reference_gtf) }
                                 .unique()
@@ -49,14 +53,10 @@ workflow FASTQ_ALIGN_HISAT2 {
                                 .join(ch_splice_sites, by: 'id')
                                 .join(ch_exons, by: 'id')
 
-        ch_input_without_gtf = ch_input
-                                .filter{ rec -> rec.reference_gtf == null }
-                                .map{ rec -> rec + record(splice_sites: null, exons: null) }
-
-        ch_input = ch_input_with_gtf.mix( ch_input_without_gtf )
+        ch_main = ch_input_with_gtf.mix( ch_input_without_gtf )
 
     } else {
-        ch_input = ch_input.map{ rec -> rec + record(splice_sites: null, exons: null) }
+        ch_main = ch_main.map{ rec -> rec + record(splice_sites: null, exons: null) }
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -64,25 +64,25 @@ workflow FASTQ_ALIGN_HISAT2 {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     ch_hisat2_index = HISAT2_BUILD(
-        ch_input.map { rec -> rec.subMap(['id', 'fasta', 'splice_sites', 'exons']) }.unique()
+        ch_main.map { rec -> rec.subMap(['id', 'fasta', 'splice_sites', 'exons']) }.unique()
     )
 
-    ch_input_with_index = ch_input.join(ch_hisat2_index, by: 'id')
+    ch_main_with_index = ch_main.join(ch_hisat2_index, by: 'id')
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // MAP A SMALL SAMPLE OF READS TO THE GENOME AND INFER STRANDEDNESS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_strandedness_inferred = INFER_STRANDEDNESS( ch_input_with_index )
+    ch_strandedness_inferred = INFER_STRANDEDNESS( ch_main_with_index )
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // MAP READS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     ch_aligned = HISAT2_ALIGN(
-        ch_input_with_index.join(ch_strandedness_inferred, by: 'read_id')
+        ch_main_with_index.join(ch_strandedness_inferred, by: 'read_id')
     )
 
     emit:
-    mapped = ch_input.join(ch_aligned, by: 'read_id')
+    mapped = ch_main.join(ch_aligned, by: 'read_id')
 }

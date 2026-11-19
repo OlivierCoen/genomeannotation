@@ -50,12 +50,12 @@ workflow FUNCTIONAL_ANNOTATION {
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         ch_eggnog_mapper_out = EGGNOGMAPPER_EMAPPER(
-            ch_input.map { rec -> record(id: rec.id, fasta: rec.proteome, gff: rec.gff, eggnog_mapper_db: rec.eggnog_mapper_db) },
+            ch_input.map { rec -> record(id: rec.id, fasta: rec.proteome, gff: rec.gff) },
             ch_eggnog_db,
             eggnog_mapper_mode
         )
 
-        ch_input = ch_input.join( ch_eggnog_mapper_out, by: 'id' )
+        ch_main = ch_input.join( ch_eggnog_mapper_out, by: 'id' )
 
         // NOTE: the 'gff' key now holds the gff decorated by eggnog mapper
     }
@@ -84,7 +84,7 @@ workflow FUNCTIONAL_ANNOTATION {
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             if ( interproscan5_db ) {
-                interproscan_db = channel.fromPath( interproscan5_db, checkExists: true )
+                interproscan_db = channel.fromPath( interproscan5_db, checkIfExists: true )
             } else {
                 interproscan_db = INTERPROSCAN5_DOWNLOADDB( channel.value( interproscan5_db_url ) )
             }
@@ -100,24 +100,21 @@ workflow FUNCTIONAL_ANNOTATION {
 
         }
 
-        if ( functional_annotators.size() > 1 ) {
+        ch_interproscan_out = ch_interproscan_out.map { rec -> record(id: rec.id, interproscan_gff: rec.gff) }
 
-            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // COMPLEMENT EXISTING GFF WITH OUTPUT FROM INTERPROSCAN
-            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // COMPLEMENT EXISTING GFF WITH OUTPUT FROM INTERPROSCAN
+        // NOTE: the output GFF of Interproscan is not a real GFF annotation, although it has the same format.
+        // We use therefore a custom script to insert the important information contained in this GFF into the existing annotation.
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-            ch_input = ch_input.join(
-                ch_interproscan_out.map { rec -> record(id: rec.id, interproscan_gff: rec.gff) },
-                by: 'id'
-            )
+        ch_complemented = COMPLEMENT_GFF_WITH_INTERPROSCAN_GFF(
+            ch_main.join( ch_interproscan_out, by: 'id' )
+        )
+        ch_main = ch_main.join( ch_complemented, by: 'id' )
 
-            ch_complemented = COMPLEMENT_GFF_WITH_INTERPROSCAN_GFF( ch_input )
-            ch_input = ch_input.join( ch_complemented, by: 'id' )
-
-        }
     }
 
-
     emit:
-    ch_input
+    ch_main
 }

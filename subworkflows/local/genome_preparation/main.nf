@@ -42,7 +42,7 @@ workflow GENOME_PREPARATION {
                     .join(ch_stats, by: 'id')
                     .map {
                         rec ->
-                            def csv = rec.stats.splitCsv( header: true, sep: '\t', limit: 1 ).collect()
+                            def csv = rec.stats.splitCsv( header: true, sep: '\t', limit: 1 ).toList()
                             rec + record(genome_size: csv[0].sum_len.toInteger())
                     }
 

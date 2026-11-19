@@ -16,6 +16,7 @@ process GET_ORTHODB_CLADE_PROTEINS {
             species: String,
             taxid_lineage: String
         )
+        orthodb_version: String
 
     output:
         record(
@@ -32,7 +33,8 @@ process GET_ORTHODB_CLADE_PROTEINS {
     script:
     """
     get_orthodb_clade_proteins.py \\
-        --taxid-lineage $taxid_lineage
+        --taxid-lineage $taxid_lineage \\
+        --orthodb-version $orthodb_version
 
     echo "Compressing protein file"
     pigz *.orthodb.faa

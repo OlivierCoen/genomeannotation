@@ -32,13 +32,13 @@ workflow FASTQ_ALIGN_MINIMAP2 {
         ch_input.map { rec -> rec.subMap(['id', 'fasta']) }.unique()
     )
 
-    ch_input_with_index = ch_input.join(ch_minimap2_index, by: 'id')
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // MAP READS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_aligned = MINIMAP2_ALIGN( ch_input_with_index )
+    ch_aligned = MINIMAP2_ALIGN(
+        ch_input.join(ch_minimap2_index, by: 'id')
+    )
 
     emit:
     mapped = ch_input.join(ch_aligned, by: 'read_id')

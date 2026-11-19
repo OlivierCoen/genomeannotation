@@ -29,8 +29,8 @@ workflow MMSEQS_DB_PREPARATION {
 
     take:
     ch_input: Channel<Input>
-    mmseqs_db
-    skip_mmseqs_db_download
+    mmseqs_db: Path
+    skip_mmseqs_db_download: Boolean
 
     main:
 
@@ -41,30 +41,30 @@ workflow MMSEQS_DB_PREPARATION {
     if ( !skip_mmseqs_db_download ) {
 
         // the mmseqs db supplied in the samplesheet takes precedence over the one provided globally in the parameters
-        ch_input = ch_input.map{ rec ->
+        ch_main = ch_input.map{ rec ->
             rec + record(mmseqs_db_to_download: rec.mmseqs_db ?: mmseqs_db)
         }
 
         ch_downloaded_mmseqs_db = MMSEQS_DATABASES(
-            ch_input.map { rec -> rec.mmseqs_db_to_download }.unique()
+            ch_main.map { rec -> rec.mmseqs_db_to_download }.unique()
         )
 
         ch_downloaded_mmseqs_db = ch_downloaded_mmseqs_db.map{ rec ->
             record(mmseqs_db_to_download: rec.id, public_mmseqs_db: rec.db)
         }
 
-        ch_input = ch_input.join( ch_downloaded_mmseqs_db, by: 'mmseqs_db_to_download' )
+        ch_main = ch_main.join( ch_downloaded_mmseqs_db, by: 'mmseqs_db_to_download' )
 
     } else {
-        ch_input = ch_input.map { rec -> rec + record(mmseqs_db: null) }
+        ch_main = ch_input.map { rec -> rec + record(mmseqs_db: null) }
     }
 
     // ----------------------------------------------------------
     // CREATE DBS FROM CUSTOM PROTEIN SEQUENCES
     // ----------------------------------------------------------
 
-    ch_mmseqs_db_to_create = ch_input.filter { rec -> rec.training_proteins.size() > 0 }
-    ch_leave_me_alone      = ch_input.filter { rec -> rec.training_proteins.size() == 0 }
+    ch_mmseqs_db_to_create = ch_main.filter { rec -> rec.training_proteins.size() > 0 }
+    ch_leave_me_alone      = ch_main.filter { rec -> rec.training_proteins.size() == 0 }
 
     ch_mmseqs_db = MMSEQS_CREATEDB(
         ch_mmseqs_db_to_create.map { rec -> record(id: rec.id, sequences: rec.training_proteins) }
@@ -73,19 +73,19 @@ workflow MMSEQS_DB_PREPARATION {
     ch_mmseqs_db_created = ch_mmseqs_db_to_create.join( ch_mmseqs_db, by: 'id')
     ch_leave_me_alone    = ch_leave_me_alone.map { rec -> rec + record(custom_mmseqs_db: null) }
 
-    ch_input = ch_mmseqs_db_created.mix( ch_leave_me_alone )
+    ch_main = ch_mmseqs_db_created.mix( ch_leave_me_alone )
 
     // ----------------------------------------------------------
     // CONCAT ALL PROTEIN DBS INTO A SINLE ONE
     // ----------------------------------------------------------
 
-    ch_input = ch_input.map{ rec ->
+    ch_main = ch_main.map{ rec ->
         rec + record(mmseqs_dbs: [rec.public_mmseqs_db, rec.custom_mmseqs_db].findAll{ db -> db != null } )
     }
 
-    ch_mmseqs_dbs_to_concat = ch_input.filter { rec -> rec.mmseqs_dbs.size() > 1 }
-    ch_single_mmseqs_db     = ch_input.filter { rec -> rec.mmseqs_dbs.size() == 1 }
-    ch_no_mmseqs_db         = ch_input.filter { rec -> rec.mmseqs_dbs.size() == 0 }
+    ch_mmseqs_dbs_to_concat = ch_main.filter { rec -> rec.mmseqs_dbs.size() > 1 }
+    ch_single_mmseqs_db     = ch_main.filter { rec -> rec.mmseqs_dbs.size() == 1 }
+    ch_no_mmseqs_db         = ch_main.filter { rec -> rec.mmseqs_dbs.size() == 0 }
 
     ch_mmseqs_concatenated_db = MMSEQS_CONCATDBS( ch_mmseqs_dbs_to_concat )
 

@@ -36,12 +36,25 @@ repos:
               assets/.*$
           )$
       - id: check-merge-conflict
-  #- repo: https://github.com/seqeralabs/nf-lint-pre-commit
-  #  rev: v0.3.0
-  #  hooks:
-  #    - id: nextflow-lint
-  #      files: '\.nf$|nextflow\.config$'
-  #      args: ["-output", "json"]
+  # -------------------------------------------------------------
+  # NOTE [18/11/2026]: disabling nextflow linting on some specific modules / subworkflows for now
+  # because it is not completely usable
+  # the linter raises errors for unknown functions / methods for certain types (such as findAll for maps...)
+  # although no clean alternatives exist in the doc
+  # -------------------------------------------------------------
+  - repo: https://github.com/seqeralabs/nf-lint-pre-commit
+    rev: v0.3.0
+    hooks:
+      - id: nextflow-lint
+        files: '\.nf$|nextflow\.config$'
+        args: ["-output", "json"]
+        exclude: |
+          main.nf  
+          workflows/genomeannotation.nf  
+          subworkflows/
+          modules/local/interproscan6/main.nf
+          modules/local/seqtk/sample/main.nf
+          modules/local/repeatmodeler/repeatmodeler/main.nf
   - repo: local
     hooks:
       - id: block-pipeline-outdir

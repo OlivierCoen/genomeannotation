@@ -11,9 +11,10 @@ include { GFFREAD as FROM_OTHER_ANNOTATIONS           } from '../../../modules/l
 
 record Input {
     id: String
+    fasta: Path
     gff: Path
-    intermediate_annotations: List<Path>
-    alternative_annotations: List<Path>
+    intermediate_annotations: List<Path>?
+    alternative_annotations: List<Path>?
     previous_annotation: Path?
 }
 
@@ -30,7 +31,7 @@ workflow EXTRACT_SEQUENCES {
 
     ch_proteome = FROM_MAIN_ANNOTATION( ch_input )
 
-    ch_input = ch_input.join(
+    ch_main = ch_input.join(
         ch_proteome.map { rec -> record(id: rec.id, proteome: rec.proteins) },
         by: 'id'
     )
@@ -40,7 +41,7 @@ workflow EXTRACT_SEQUENCES {
     // THIS WILL BE USED BY BUSCO
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_others_input = ch_input.flatMap { rec ->
+    ch_others_input = ch_main.flatMap { rec ->
         def alt_gff = rec.alternative_annotations ?: []
         def interm_gffs = rec.intermediate_annotations ?: []
         def prev_gff = rec.previous_annotation ? [rec.previous_annotation]: []
@@ -51,12 +52,12 @@ workflow EXTRACT_SEQUENCES {
     ch_other_proteomes = FROM_OTHER_ANNOTATIONS( ch_others_input )
 
     ch_other_proteomes = ch_other_proteomes.map { rec -> tuple(rec.id, rec.proteins) }
-                            .groupTuple()
+                            .groupBy()
                             .map { id, fasta_list -> record(id: id, other_proteomes: fasta_list) }
 
-    ch_input = ch_input.join( ch_other_proteomes, by: 'id' )
+    ch_main = ch_main.join( ch_other_proteomes, by: 'id' )
 
     emit:
-    ch_input
+    ch_main
 
 }

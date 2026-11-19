@@ -45,10 +45,10 @@ workflow GENOME_MASKING {
         // SOMETIMES REPEAT MODELER DOES NOT FIND FAMILIES
         // THE GENOME SHOULD NOT BE MASKED IN SUCH CASES
 
-        ch_input = ch_input.join( ch_repeatmodeler_out, by: 'id' )
+        ch_main = ch_input.join( ch_repeatmodeler_out, by: 'id' )
 
-        ch_can_be_masked    = ch_input.filter{ rec -> rec.lib != null }
-        ch_cannot_be_masked = ch_input.filter{ rec -> rec.lib == null }
+        ch_can_be_masked    = ch_main.filter{ rec -> rec.lib != null }
+        ch_cannot_be_masked = ch_main.filter{ rec -> rec.lib == null }
 
         ch_masked = REPEATMASKER( ch_can_be_masked )
 
@@ -58,7 +58,7 @@ workflow GENOME_MASKING {
 
             ch_dfam_db = channel.fromPath( dfam_db, checkIfExists: true )
 
-            ch_input = ch_input
+            ch_main = ch_input
                         .combine( ch_dfam_db )
                         .map { rec, db -> rec + record(dfam_db: db) }
 
@@ -69,11 +69,11 @@ workflow GENOME_MASKING {
                 ch_input.map { rec -> record(taxid: rec.taxid, taxid_lineage: rec.taxid_lineage) }.unique()
             )
 
-            ch_input = ch_input.join( ch_dfam_db, by: 'taxid' )
+            ch_main = ch_input.join( ch_dfam_db, by: 'taxid' )
 
         }
 
-        ch_masked = EARLGREY( ch_input )
+        ch_masked = EARLGREY( ch_main )
 
     }
 

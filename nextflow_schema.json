@@ -246,9 +246,9 @@
                 },
                 "orthodb_version": {
                     "type": "string",
-                    "pattern": "^odb[0-9]+v[0-9]+$",
+                    "pattern": "^[0-9]+$",
                     "description": "Version of OrthoDB to use",
-                    "help_text": "Version of OrthoDB to use. Example: odb13v0",
+                    "help_text": "Version of OrthoDB to use (without 'odb' or 'v'). Example: 13",
                     "fa_icon": "fas fa-database"
                 },
                 "skip_mmseqs_db_download": {

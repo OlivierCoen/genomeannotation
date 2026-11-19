@@ -39,7 +39,7 @@ workflow INFER_STRANDEDNESS {
         ch_input.map { rec -> record(id: rec.read_id, reads: rec.reads) },
         sample_size
     )
-    ch_input = ch_input.join(
+    ch_main = ch_input.join(
         ch_sampled.map { rec -> record(read_id: rec.id, reads: rec.reads) },
         by: 'read_id'
     )
@@ -48,12 +48,12 @@ workflow INFER_STRANDEDNESS {
     // ALIGNED SAMPLED READS TO GENOME
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_aligned = HISAT2_ALIGN( ch_input )
+    ch_aligned = HISAT2_ALIGN( ch_main )
 
-    ch_input = ch_input.join( ch_aligned, by: 'read_id' )
+    ch_main = ch_main.join( ch_aligned, by: 'read_id' )
 
-    ch_input_has_gtf = ch_input.filter { rec -> rec.reference_gtf != null }
-    ch_input_no_gtf  = ch_input.filter { rec -> rec.reference_gtf == null }
+    ch_has_gtf = ch_main.filter { rec -> rec.reference_gtf != null }
+    ch_no_gtf  = ch_main.filter { rec -> rec.reference_gtf == null }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // SAMPLES HAVING A REFERENCE GFF (MORE PRECISE INFERENCE OF STRANDEDNESS)
@@ -62,26 +62,26 @@ workflow INFER_STRANDEDNESS {
     // CONVERT REFERENCE GFF (WHEN PROVIDED) TO BED
 
     ch_gff_converted = CONVERT_GXF_TO_BED(
-        ch_input_has_gtf.map { rec -> record(id: rec.id, gxf: rec.reference_gtf) }.unique()
+        ch_has_gtf.map { rec -> record(id: rec.id, gxf: rec.reference_gtf) }.unique()
     )
-    ch_input_with_bed = ch_input_has_gtf.join(ch_gff_converted, by: 'id')
+    ch_with_bed = ch_has_gtf.join(ch_gff_converted, by: 'id')
 
     // RUN RSEQC TO INFER MAPPING METADATA
-    ch_report = RSEQC_INFEREXPERIMENT( ch_input_with_bed )
+    ch_report = RSEQC_INFEREXPERIMENT( ch_with_bed )
 
     ch_rseqc_strandedness = INFER_STRAND_FROM_RSEQC( ch_report )
 
-    ch_input_has_gtf = ch_input_has_gtf.join(ch_rseqc_strandedness, by: 'read_id')
+    ch_has_gtf = ch_has_gtf.join(ch_rseqc_strandedness, by: 'read_id')
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // SAMPLES WITHOUT A REFERENCE GFF
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_xs_strandedness = INFER_STRAND_FROM_XS( ch_input_no_gtf )
+    ch_xs_strandedness = INFER_STRAND_FROM_XS( ch_no_gtf )
 
-    ch_input_no_gtf = ch_input_no_gtf.join(ch_xs_strandedness, by: 'read_id')
+    ch_no_gtf = ch_no_gtf.join(ch_xs_strandedness, by: 'read_id')
 
-    ch_strandedness = ch_input_has_gtf.mix(ch_input_no_gtf)
+    ch_strandedness = ch_has_gtf.mix(ch_no_gtf)
                         .map { rec -> rec.subMap(['read_id', 'strandedness'])}
 
     emit:

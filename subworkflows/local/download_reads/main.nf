@@ -11,7 +11,8 @@ include { SEQTK_SAMPLE as SAMPLE_READS              } from '../../../modules/loc
 
 record ExperimentIDs {
     id: String
-    rnaseq_experiment_ids: List<String>
+    short_read_sra_ids: List<String>
+    long_read_sra_ids: List<String>
 }
 
 workflow DOWNLOAD_READS {
@@ -26,7 +27,7 @@ workflow DOWNLOAD_READS {
     // for both short reads and long reads
     ch_all_sra_ids = ch_input
                         .map { rec -> rec.short_read_sra_ids + rec.long_read_sra_ids }
-                        .flatMap{ sra_ids -> sra_ids.collect() }
+                        .flatMap{ sra_ids -> sra_ids.toSorted() }
                         .filter{ sra_id -> sra_id != null }
                         .unique()
 

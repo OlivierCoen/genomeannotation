@@ -66,8 +66,10 @@ workflow PREPARE_RNASEQ_DATA {
             sra_allow_single_end,
             sra_random_seed
         )
-        ch_input = ch_input.join( ch_sra_ids, by: 'id', remainder: true )
+        ch_main = ch_input.join( ch_sra_ids, by: 'id', remainder: true )
 
+    } else {
+        ch_main = ch_input
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -75,7 +77,7 @@ workflow PREPARE_RNASEQ_DATA {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // merging supplied and fetched SRA IDs
-    ch_input = ch_input
+    ch_main = ch_main
                 .map { rec ->
                     rec + record(
                         short_read_sra_ids: rec.supplied_short_read_sra_ids + rec.fetched_short_read_sra_ids,
@@ -88,16 +90,16 @@ workflow PREPARE_RNASEQ_DATA {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     ch_downloaded_reads = DOWNLOAD_READS(
-        ch_input,
+        ch_main,
         read_sampling_size
     )
-    ch_input = ch_input.join( ch_downloaded_reads, by: 'id', remainder: true )
+    ch_main = ch_main.join( ch_downloaded_reads, by: 'id', remainder: true )
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // MERGE USER SUPPLIED AND DOWNLOAD READS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_input = ch_input.map{ rec ->
+    ch_main = ch_main.map{ rec ->
         // findAll removes nulls
         rec + record(
             short_reads: [rec.supplied_short_reads, rec.downloaded_short_reads].flatten().findAll(),
@@ -110,14 +112,14 @@ workflow PREPARE_RNASEQ_DATA {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     ch_short_reads_mapped = SHORT_READ_PREPARATION(
-        ch_input.filter{ rec -> rec.short_reads.size() > 0 }, // pass only samples for which there are short reads
-        params.skip_fastqc,
-        params.skip_fastqc_raw,
-        params.skip_fastqc_cleaned,
-        params.skip_umi_extract,
-        params.skip_short_read_cleaning,
-        params.short_read_mapper,
-        params.ignore_existing_gff_for_mapping
+        ch_main.filter{ rec -> rec.short_reads.size() > 0 }, // pass only samples for which there are short reads
+        skip_fastqc,
+        skip_fastqc_raw,
+        skip_fastqc_cleaned,
+        skip_umi_extract,
+        skip_short_read_cleaning,
+        short_read_mapper,
+        ignore_existing_gff_for_mapping
     )
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -125,7 +127,7 @@ workflow PREPARE_RNASEQ_DATA {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     ch_long_reads_mapped = LONG_READ_PREPARATION(
-        ch_input.filter{ rec -> rec.long_reads.size() > 0 }, // pass only samples for which there are long reads
+        ch_main.filter{ rec -> rec.long_reads.size() > 0 }, // pass only samples for which there are long reads
         params.skip_fastqc,
         params.skip_fastqc_raw,
         params.skip_fastqc_cleaned,
@@ -136,10 +138,10 @@ workflow PREPARE_RNASEQ_DATA {
     // MERGE USER SUPPLIED AND NEW MAPPINGS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_input_with_bams = ch_input
-                            .join( ch_short_reads_mapped, by: 'id', remainder: true )
-                            .join( ch_long_reads_mapped, by: 'id', remainder: true )
-                            .map { rec ->
+    ch_with_bams = ch_main
+                    .join( ch_short_reads_mapped, by: 'id', remainder: true )
+                    .join( ch_long_reads_mapped, by: 'id', remainder: true )
+                    .map { rec ->
         // making lists for new bams if null
         def new_short_read_bams = rec.new_short_read_bams ? rec.new_short_read_bams : []
         def new_long_read_bams  = rec.new_long_read_bams ? rec.new_long_read_bams : []
@@ -158,8 +160,8 @@ workflow PREPARE_RNASEQ_DATA {
         )
     }
 
-    ch_input_has_bams = ch_input_with_bams
-                            .filter { rec -> rec.short_read_bams.size() > 0 || rec.long_read_bams.size() > 0 }
+    ch_has_bams = ch_with_bams
+                    .filter { rec -> rec.short_read_bams.size() > 0 || rec.long_read_bams.size() > 0 }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // PUT SHORT AND LONG READS TOGETHER
@@ -167,7 +169,7 @@ workflow PREPARE_RNASEQ_DATA {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     ch_sorted_indexed = BAM_SORT_INDEX_STATS(
-        ch_input_has_bams.map{ rec -> record(
+            ch_has_bams.map{ rec -> record(
             id: rec.id,
             fasta: rec.fasta,
             bams: rec.short_read_bams + rec.long_read_bams // putting short and long bams together
@@ -178,7 +180,7 @@ workflow PREPARE_RNASEQ_DATA {
     // SEPARATE SORTED SHORT AND LONG READS AGAIN
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_input = ch_input
+    ch_main = ch_main
                 .join( ch_sorted_indexed, by: 'id')
                 .map{ rec ->
                     // separate rec.mappings in two parts and remove the 'type' entry
@@ -191,8 +193,6 @@ workflow PREPARE_RNASEQ_DATA {
                         )
                 }
 
-
     emit:
-    ch_input
-
+    ch_main
 }

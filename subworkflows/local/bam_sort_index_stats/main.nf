@@ -16,7 +16,8 @@ record Bam {
 record Input {
     id: String
     fasta: Path
-    bams: List<Bam>
+    fai: Path
+    bams: List
 }
 
 workflow BAM_SORT_INDEX_STATS {
@@ -31,7 +32,7 @@ workflow BAM_SORT_INDEX_STATS {
     // ------------------------------------------------------------------------------------
 
     ch_fai = SAMTOOLS_FAIDX(
-        ch_input.map { rec -> rec.subMap(['id', 'fasta']) }.unique()
+        ch_input.map { rec -> record(id: rec.id, fasta: rec.fasta) }.unique()
     )
     ch_input = ch_input.join( ch_fai, by: 'id' )
 

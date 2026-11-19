@@ -37,17 +37,18 @@ workflow POST_PROCESS_ANNOTATION {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // complementation can only be done using the new structural annotation
-
     if ( complement_annotation ) {
         ch_complemented = COMPLEMENT_ANNOTATION(
             ch_input,
             complementation_use_ref_as_template
         )
-        ch_input = ch_input.join( ch_complemented, by: 'id' )
+        ch_main = ch_input.join( ch_complemented, by: 'id' )
+    } else {
+        ch_main = ch_input
     }
 
     // filtering to keep only records that have at least a structural annotation or a gff
-    ch_input = ch_input.filter { rec -> rec.structural_annotation != null }
+    ch_main = ch_main.filter { rec -> rec.structural_annotation != null }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // CLEANING OF GFF
@@ -56,15 +57,18 @@ workflow POST_PROCESS_ANNOTATION {
     if ( !skip_gff_cleaning ) {
 
         ch_cleaned = CLEAN_ANNOTATION (
-            ch_input,
+            ch_main,
             gff_fix_feature_locations_duplicated,
             gff_fix_overlapping_genes,
             gff_filter_incomplete_gene_models
         )
-        ch_input = ch_input.join( ch_cleaned, by: 'id' )
+        ch_main = ch_main.join( ch_cleaned, by: 'id' )
 
-        // NOTE: now the annotation is under the 'gff' key
+    } else {
+        ch_main = ch_main.map { rec -> rec + record(gff: rec.structural_annotation)}
     }
+
+    // NOTE: now the annotation is under the 'gff' key
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // MAKE ALTERNATIVE ANNOTATIONS (LONGEST ISOFORMS ONLY, ...)
@@ -72,12 +76,12 @@ workflow POST_PROCESS_ANNOTATION {
 
     if ( !skip_alternative_annotations ) {
 
-        ch_alternative_annotations = ALTERNATIVE_ANNOTATIONS( ch_input )
-        ch_input = ch_input.join( ch_alternative_annotations, by: 'id' )
+        ch_alternative_annotations = ALTERNATIVE_ANNOTATIONS( ch_main )
+        ch_main = ch_main.join( ch_alternative_annotations, by: 'id' )
 
     }
 
     emit:
-    ch_input
+    ch_main
 
 }

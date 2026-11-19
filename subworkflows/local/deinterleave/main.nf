@@ -41,7 +41,6 @@ workflow DEINTERLEAVE {
 
     ch_deinterleaved = ch_interleaved_reads.join(ch_bbmap_deinterleave_out, by: 'read_id')
 
-
     emit:
     ch_paired_end_reads.mix( ch_single_end_reads ).mix( ch_deinterleaved )
 

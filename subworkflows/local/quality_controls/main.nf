@@ -27,8 +27,8 @@ workflow QUALITY_CONTROLS {
     ch_input: Channel<Input>
     skip_busco: Boolean
     skip_omark: Boolean
-    omamer_db_url: Boolean
-    omamer_db: Boolean
+    omamer_db_url: String
+    omamer_db: String
 
     main:
 

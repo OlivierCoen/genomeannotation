@@ -37,6 +37,7 @@ record Samplesheet {
     mmseqs_db: String
     tsebra_gtfs: List<Path>
     tsebra_hintsfiles: List<Path>
+    multiqc_report: Path
 }
 
 
@@ -199,7 +200,7 @@ workflow GENOMEANNOTATION {
 
     if ( !params.skip_qc ) {
 
-        ch_qc = QUALITY_CONTROLS(
+        QUALITY_CONTROLS(
             ch_main,
             params.skip_busco,
             params.skip_omark,

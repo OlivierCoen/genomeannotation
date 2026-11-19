@@ -41,7 +41,7 @@ workflow CLEAN_ANNOTATION {
 
     // storing the current uncleaned annotation in the list of intermediate annotations
     // storing the reference gff too (if provided)
-    ch_input = ch_input.map { rec ->
+    ch_main = ch_input.map { rec ->
         if ( rec.reference_gff ) {
             rec + record(intermediate_annotations: [rec.structural_annotation, rec.reference_gff])
         } else {
@@ -55,9 +55,9 @@ workflow CLEAN_ANNOTATION {
 
     // remove redundant entries and convert all GTFs / GFFs to GFFs
     ch_out = AGAT_CONVERT_TO_GFF (
-        ch_input.map { rec -> record(id: rec.id, gxf: rec.structural_annotation)}
+        ch_main.map { rec -> record(id: rec.id, gxf: rec.structural_annotation)}
     )
-    ch_input = ch_input.join( ch_out, by: 'id' )
+    ch_main = ch_main.join( ch_out, by: 'id' )
 
     // each record has now a gff entry, that will be used in the subsequent steps
 
@@ -66,24 +66,24 @@ workflow CLEAN_ANNOTATION {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     if ( gff_fix_feature_locations_duplicated ) {
-        ch_input = addGFFToIntermediateAnnotations( ch_input )
-        ch_out = AGAT_FIX_FEATURE_LOCATIONS_DUPLICATIONS( ch_input )
-        ch_input = ch_input.join( ch_out, by: 'id' )
+        ch_main = addGFFToIntermediateAnnotations( ch_main )
+        ch_out = AGAT_FIX_FEATURE_LOCATIONS_DUPLICATIONS( ch_main )
+        ch_main = ch_main.join( ch_out, by: 'id' )
     }
 
     if ( gff_fix_overlapping_genes ) {
-        ch_input = addGFFToIntermediateAnnotations( ch_input )
-        ch_out = AGAT_FIX_OVERLAPPING_GENES( ch_input )
-        ch_input = ch_input.join( ch_out, by: 'id' )
+        ch_main = addGFFToIntermediateAnnotations( ch_main )
+        ch_out = AGAT_FIX_OVERLAPPING_GENES( ch_main )
+        ch_main = ch_main.join( ch_out, by: 'id' )
     }
 
     if ( gff_filter_incomplete_gene_models ) {
-        ch_input = addGFFToIntermediateAnnotations( ch_input )
-        ch_out = AGAT_FILTER_INCOMPLETE_GENE_CODING_MODELS( ch_input )
-        ch_input = ch_input.join( ch_out, by: 'id' )
+        ch_main = addGFFToIntermediateAnnotations( ch_main )
+        ch_out = AGAT_FILTER_INCOMPLETE_GENE_CODING_MODELS( ch_main )
+        ch_main = ch_main.join( ch_out, by: 'id' )
     }
 
     emit:
-    ch_input
+    ch_main
 
 }

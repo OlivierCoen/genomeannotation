@@ -12,12 +12,15 @@ include { BUSCO_BUSCO as BUSCO_PROTEOME                               } from '..
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+
 record Input {
     id: String
+    fasta: Path
     species: String
     proteome: Path
     other_proteomes: List<Path>
 }
+
 
 workflow BUSCO {
 
@@ -42,13 +45,13 @@ workflow BUSCO {
         ch_available_busco_datasets
     )
 
-    ch_input = ch_input.join(ch_busco_lineage, by: 'species')
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // DOWNLOAD NECESSARY BUSCO DATASETS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    ch_busco_input = ch_input.filter { rec -> rec.busco_lineage != null }
+    ch_busco_input = ch_input
+                        .join(ch_busco_lineage, by: 'species')
+                        .filter { rec -> rec.busco_lineage != null }
 
     ch_busco_downloads = DOWNLOAD_DATASET(
         ch_busco_input.map { rec -> rec.busco_lineage }.unique()
@@ -90,7 +93,7 @@ workflow BUSCO {
             download_path: rec.busco_download_path,
             reference: false
         ) }
-        [ main_proteome ] + other_proteomes
+        [ main_proteome ] + other_proteomes.toList()
 
     }
 

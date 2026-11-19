@@ -28,7 +28,6 @@ process SEQTK_SAMPLE {
 
     script:
     def args   = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "$id"
     if (!(args ==~ /.*\ -s\ ?[0-9]+.*/)) {
         args += " -s100"
     }

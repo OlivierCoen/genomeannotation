@@ -36,22 +36,22 @@ workflow METAEUK {
         skip_mmseqs_db_download
     )
 
-    ch_input = ch_input.join( ch_mmseqs_db, by: 'id' )
+    ch_main = ch_input.join( ch_mmseqs_db, by: 'id' )
 
     // ----------------------------------------------------------
     // RUN METAEUK
     // ----------------------------------------------------------
 
     ch_metaeuk_out = METAEUK_EASYPREDICT(
-        ch_input.map{ rec -> record(id: rec.id, fasta: rec.fasta, db: rec.mmseqs_db)}
+        ch_main.map{ rec -> record(id: rec.id, fasta: rec.fasta, db: rec.mmseqs_db)}
     )
 
-    ch_input = ch_input.join(
+    ch_main = ch_main.join(
         ch_metaeuk_out.map { rec -> record(id: rec.id, structural_annotation: rec.gff) },
         by: 'id'
     )
 
     emit:
-    annotated = ch_input
+    annotated = ch_main
 
 }

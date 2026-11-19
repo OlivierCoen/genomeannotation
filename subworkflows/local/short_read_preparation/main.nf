@@ -30,7 +30,7 @@ record Input {
 workflow SHORT_READ_PREPARATION {
 
     take:
-    ch_input
+    ch_input: Channel<Input>
     skip_fastqc: Boolean
     skip_fastqc_raw: Boolean
     skip_fastqc_cleaned: Boolean
@@ -47,22 +47,22 @@ workflow SHORT_READ_PREPARATION {
 
     if ( !ignore_existing_gff_for_mapping ) {
 
-        ch_input_with_gff    = ch_input.filter{ rec -> rec.reference_gff != null }
-        ch_input_without_gff = ch_input.filter{ rec -> rec.reference_gff == null }
+        ch_with_gff    = ch_input.filter{ rec -> rec.reference_gff != null }
+        ch_without_gff = ch_input.filter{ rec -> rec.reference_gff == null }
 
         ch_converted = CONVERT_TO_GTF(
-            ch_input_with_gff.map { rec -> record(id: rec.id, gff: rec.reference_gff) }
+            ch_with_gff.map { rec -> record(id: rec.id, gff: rec.reference_gff) }
         )
 
-        ch_input_with_gff = ch_input_with_gff.join(
+        ch_with_gff = ch_with_gff.join(
             ch_converted.map{ rec -> record(id: rec.id, reference_gtf: rec.gtf) },
             by: 'id'
         )
 
-        ch_input = ch_input_without_gff.mix( ch_input_with_gff )
+        ch_main = ch_without_gff.mix( ch_with_gff )
 
     } else {
-        ch_input = ch_input.map{ rec -> rec + record(reference_gtf: null) }
+        ch_main = ch_input.map{ rec -> rec + record(reference_gtf: null) }
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -71,7 +71,7 @@ workflow SHORT_READ_PREPARATION {
 
     // make channel containing one pair of fastq files (or one single fastq file in case of single end)
     // per element
-    ch_reads = ch_input
+    ch_reads = ch_main
                 .flatMap{ rec -> rec.short_reads.collect{ subrec ->
                     record(
                         id: rec.id,

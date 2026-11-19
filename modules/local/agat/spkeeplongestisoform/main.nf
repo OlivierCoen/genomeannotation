@@ -10,7 +10,7 @@ process AGAT_SPKEEPLONGESTISOFORM {
         'community.wave.seqera.io/library/agat:1.7.0--9487e22276dbaaca' }"
 
     input:
-    record(id: String, gff: Path)
+        record(id: String, gff: Path)
 
     output:
         record(

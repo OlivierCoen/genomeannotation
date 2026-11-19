@@ -28,7 +28,6 @@ process STAR_GENOMEGENERATE {
 
     script:
     def args        = task.ext.args ?: ''
-    def args_list   = args.tokenize()
     def memory      = task.memory ? "--limitGenomeGenerateRAM ${task.memory.toBytes() - 100000000}" : ''
     def gtf_arg     = ignore_existing_gtf ? "" : gtf ? "--sjdbGTFfile $gtf" : ''
     """

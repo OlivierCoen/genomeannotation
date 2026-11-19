@@ -8,11 +8,16 @@ include { AGAT_SPKEEPLONGESTISOFORM as AGAT_KEEP_LONGEST_ISOFORM } from '../../.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+record Input {
+    id: String
+    gff: Path
+}
+
 
 workflow ALTERNATIVE_ANNOTATIONS {
 
     take:
-    ch_input
+    ch_input: Channel<Input>
 
     main:
 

@@ -73,7 +73,7 @@ process INTERPROSCAN6 {
         "NXF_SPACK_CACHEDIR",
     ]
     def child_env = System.getenv().findAll {
-        k, v -> !(k.startsWith("NXF") || k.startsWith("TOWER")) || k in nxf_passthrough
+        key, _value -> !(key.startsWith("NXF") || key.startsWith("TOWER")) || key in nxf_passthrough
     }
 
     // setting nextflow version in env vars

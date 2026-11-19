@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 OUTFILE_SUFFIX = 'orthodb.faa'
 
-ORTHODB_API_URL = "https://data.orthodb.org/v13"
+ORTHODB_API_URL = "https://data.orthodb.org/v"
 STOP_RETRY_AFTER_DELAY = 120
 HTTPX_CLIENT_KWARGS = dict(
     follow_redirects=True,
@@ -42,6 +42,7 @@ def parse_args():
     parser.add_argument('--taxid-lineage', dest="taxid_lineage", type=str, required=True,
         help='List of NCBI taxids representing the organism and its parents, from the most specific to the most general'
     )
+    parser.add_argument('--orthodb-version', dest="orthodb_version", type=str, required=True, help='OrthoDB version to use')
     return parser.parse_args()
 
 
@@ -69,14 +70,14 @@ async def fetch_species_fasta(client: httpx.AsyncClient, endpoint: str, params: 
         return response.text
 
 
-def get_species_tree() -> dict:
-    endpoint = f"{ORTHODB_API_URL}/tree"
+def get_species_tree(base_url: str) -> dict:
+    endpoint = f"{base_url}/tree"
     response = send_request_to_orthodb(endpoint)
     return response.json()['data']
 
 
-def get_clade_species(clade_taxid: str) -> list[str]:
-    endpoint = f"{ORTHODB_API_URL}/species"
+def get_clade_species(clade_taxid: str, base_url: str) -> list[str]:
+    endpoint = f"{base_url}/species"
     params = {'clade': clade_taxid}
     response = send_request_to_orthodb(endpoint, params)
     return [species_dict['taxon_id'] for species_dict in response.json()['data']]
@@ -107,8 +108,8 @@ def get_most_specific_taxid(taxids: list[str], tree: dict | list) -> dict | None
     return result
 
 
-async def get_clade_fasta(species_taxids: list[str]):
-    endpoint = f"{ORTHODB_API_URL}/fasta"
+async def get_clade_fasta(species_taxids: list[str], base_url: str):
+    endpoint = f"{base_url}/fasta"
     async with httpx.AsyncClient(**HTTPX_CLIENT_KWARGS) as client:
         # launches all requests in parallel
         results = await asyncio.gather(
@@ -125,10 +126,12 @@ async def get_clade_fasta(species_taxids: list[str]):
 def main():
     args = parse_args()
 
+    base_url = ORTHODB_API_URL + args.orthodb_version
+
     lineage_taxids = args.taxid_lineage.split(',')
 
     logger.info("Fetching OrthoDB species tree")
-    species_tree = get_species_tree()
+    species_tree = get_species_tree(base_url)
 
     logger.info("Get the lowest level clade related to the provided taxid lineage")
     clade_result = get_most_specific_taxid(lineage_taxids, species_tree)
@@ -141,13 +144,13 @@ def main():
 
     logger.info(f"Found clade: {clade_name} (taxid {clade_taxid})")
 
-    species_taxids = get_clade_species(clade_taxid)
+    species_taxids = get_clade_species(clade_taxid, base_url)
     logger.info(f"Found {len(species_taxids)} species related to clade {clade_name}")
 
     outfile = f"{clade_name}.{OUTFILE_SUFFIX}"
     with open(outfile, 'w') as fout:
         logger.info(f"Getting fasta sequences related to {clade_name} species")
-        results = asyncio.run(get_clade_fasta(species_taxids))
+        results = asyncio.run(get_clade_fasta(species_taxids, base_url))
         for result, taxid in zip(results, species_taxids):
             if isinstance(result, Exception):
                 logger.warning(f"Failed for species {taxid}: {result!r}")

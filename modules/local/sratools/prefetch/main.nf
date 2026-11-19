@@ -17,7 +17,7 @@ process SRATOOLS_PREFETCH {
     output:
         record(
             id: id,
-            sra: files("${id[0..1]}*", type: 'dir')
+            sra: files("${id.tokenize()[0..1]}*", type: 'dir')
         )
 
     topic:
@@ -26,7 +26,7 @@ process SRATOOLS_PREFETCH {
 
     script:
     def args = task.ext.args ?: ''
-    def two_first_letters = id[0..1]
+    def two_first_letters = id.tokenize()[0..1]
     """
     export NCBI_SETTINGS="\$PWD/!{ncbi_settings}"
 
