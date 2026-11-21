@@ -18,7 +18,7 @@ process BBMAP_DEINTERLEAVE {
     output:
         record(
             read_id: read_id,
-            reads: files("*.deinterleaved.fastq.gz")
+            reads: files("*.deinterleaved.fastq.gz").toList()
         )
 
 

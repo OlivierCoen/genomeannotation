@@ -74,7 +74,7 @@ process INTERPROSCAN6 {
     ]
     def child_env = System.getenv().findAll {
         key, _value -> !(key.startsWith("NXF") || key.startsWith("TOWER")) || key in nxf_passthrough
-    }
+    }.collect { key, value -> "${key}=${value}" }
 
     // setting nextflow version in env vars
     child_env << "NXF_VER=${getNextflowVersion()}"

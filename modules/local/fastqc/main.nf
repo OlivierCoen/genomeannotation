@@ -30,11 +30,9 @@ process FASTQC {
 
     // Make list of old name and new name pairs to use for renaming in the bash while loop
     // NOTE: file(*) were added to comply with the nextflow linter...
-    def old_new_pairs = reads.size() == 1 ?
-        [[reads[0], file("${prefix}.${reads[0].extension}")]] :
-        reads.withIndex().collect { read_file, index -> [file(read_file), file("${prefix}_${index + 1}.${read_file.extension}")] }.toList()
+    def old_new_pairs = reads.size() == 1 ? [[reads[0], "${prefix}.${reads[0].extension}"]] : reads.withIndex().collect { entry, index -> [entry, "${prefix}_${index + 1}.${entry.extension}"] }
     def rename_to = old_new_pairs*.join(' ').join(' ')
-    def renamed_files = old_new_pairs.collect { item -> item[1] }.toList().join(' ')
+    def renamed_files = old_new_pairs.collect { _old_name, new_name -> new_name }.join(' ')
 
     // The total amount of allocated RAM by FastQC is equal to the number of threads defined (--threads) time the amount of RAM defined (--memory)
     // https://github.com/s-andrews/FastQC/blob/1faeea0412093224d7f6a07f777fad60a5650795/fastqc#L211-L222

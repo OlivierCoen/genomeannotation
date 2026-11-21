@@ -19,7 +19,7 @@ process SEQTK_SAMPLE {
     output:
         record(
             id: id,
-            reads: files("*.sampled.fastq.gz")
+            reads: files("*.sampled.fastq.gz").toList()
         )
 
     topic:

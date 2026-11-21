@@ -239,12 +239,24 @@ def methodsDescriptionText(mqc_methods_yaml) {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+def checkMutuallyExclusiveParameterValues() {
+
+    // checking that at most one interproscan version was provided in params.functional_annotators
+    if ( "eggnogmapper2" in params.functional_annotators && "eggnogmapper3" in params.functional_annotators ) {
+        error("The options 'eggnogmapper2' and 'eggnogmapper3' are mutually exclusive. Please choose either one or the other. 'interproscan6' is preferred, except in cases where bugs are encountered with 'interproscan5'.")
+    }
+    
+    // checking that at most one interproscan version was provided in params.functional_annotators
+    if ( "interproscan6" in params.functional_annotators && "interproscan5" in params.functional_annotators ) {
+        error("The options 'interproscan6' and 'interproscan5' are mutually exclusive. Please choose either one or the other. `eggnogmapper2` is still proposed as the default option because `eggnogmapper3` can be run only with `apptainer` / `singularity` (and thus not with `docker` nor `conda`). If you plan on running the pipeline with `apptainer` or `singularity`, please try out `eggnogmapper3`.")
+    }
+    
+}
+
 def validateInputParameters(params) {
 
-    // checking that a species has been provided
-    if ( "interproscan6" in params.functional_annotators && "interproscan5" in params.functional_annotators ) {
-        error("The options 'interproscan6' and 'interproscan5' are mutually exclusive. Choose either one. 'interproscan6' is preferred, except in cases where bugs are encountered with 'interproscan5'.")
-    }
+    // check is mutually exclusive parameter values are not provided together
+    checkMutuallyExclusiveParameterValues()
 
 }
 

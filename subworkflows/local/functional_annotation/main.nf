@@ -1,7 +1,10 @@
 nextflow.enable.types = true
 
-include { EGGNOGMAPPER_DOWNLOADDB                      } from '../../../modules/local/eggnogmapper/download_db'
-include { EGGNOGMAPPER_EMAPPER                         } from '../../../modules/local/eggnogmapper/emapper'
+include { EGGNOGMAPPER2_DOWNLOADDB                     } from '../../../modules/local/eggnogmapper2/download_db'
+include { EGGNOGMAPPER2_EMAPPER                        } from '../../../modules/local/eggnogmapper2/emapper'
+
+include { EGGNOGMAPPER3_DOWNLOADDB                     } from '../../../modules/local/eggnogmapper3/download_db'
+include { EGGNOGMAPPER3_EMAPPER                        } from '../../../modules/local/eggnogmapper3/emapper'
 
 include { INTERPROSCAN6                                } from '../../../modules/local/interproscan6'
 
@@ -33,32 +36,55 @@ workflow FUNCTIONAL_ANNOTATION {
 
     main:
 
+    ch_main = ch_input
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // EGGNOG MAPPER
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    if ( "eggnogmapper" in functional_annotators ) {
+    if ( "eggnogmapper2" in functional_annotators ) {
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // DOWNLOAD EGGNOG DB
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        ch_eggnog_db = EGGNOGMAPPER_DOWNLOADDB( eggnog_mapper_mode )
+        ch_eggnog_db = EGGNOGMAPPER2_DOWNLOADDB( eggnog_mapper_mode )
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // RUN EGGNOG MAPPER
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        ch_eggnog_mapper_out = EGGNOGMAPPER_EMAPPER(
+        ch_eggnog_mapper_out = EGGNOGMAPPER2_EMAPPER(
             ch_input.map { rec -> record(id: rec.id, fasta: rec.proteome, gff: rec.gff) },
             ch_eggnog_db,
             eggnog_mapper_mode
         )
 
         ch_main = ch_input.join( ch_eggnog_mapper_out, by: 'id' )
+        // NOTE: the 'gff' key now holds the gff decorated by eggnog mapper
+        
+    } else if ( "eggnogmapper3" in functional_annotators ) {
+    
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // DOWNLOAD EGGNOG DB
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+        ch_eggnog_db = EGGNOGMAPPER3_DOWNLOADDB( eggnog_mapper_mode )
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // RUN EGGNOG MAPPER
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        ch_eggnog_mapper_out = EGGNOGMAPPER3_EMAPPER(
+            ch_input.map { rec -> record(id: rec.id, fasta: rec.proteome, gff: rec.gff) },
+            ch_eggnog_db,
+            eggnog_mapper_mode
+        )
+
+        ch_main = ch_input.join( ch_eggnog_mapper_out, by: 'id' )
         // NOTE: the 'gff' key now holds the gff decorated by eggnog mapper
     }
+
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // INTERPROSCAN

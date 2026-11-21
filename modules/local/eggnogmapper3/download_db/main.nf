@@ -1,6 +1,6 @@
 nextflow.enable.types = true
 
-process EGGNOGMAPPER_DOWNLOADDB {
+process EGGNOGMAPPER3_DOWNLOADDB {
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
@@ -20,10 +20,15 @@ process EGGNOGMAPPER_DOWNLOADDB {
         tuple("${task.process}", 'httpx', eval('python3 -c "import httpx; print(httpx.__version__)"')) >> 'versions'
 
     script:
+    if (eggnog_mapper_mode == 'pfam') {
+        error("Pfam mode is not yet supported in EGGNOG-mapper v3")
+    }
+    // Note:
+    // eggnogmapper db 7.0.0 ~ 42G
     """
     mkdir data
 
-    download_eggnog_data.v2.py \\
+    download_eggnog_data.v3.py \\
         --db ${eggnog_mapper_mode} \\
         --out data \\
         --ncpus $task.cpus

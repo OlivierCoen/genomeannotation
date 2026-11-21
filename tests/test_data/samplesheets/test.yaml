@@ -1,22 +1,23 @@
 - sample: braker_pass_etp
-  genome: tests/test_data/data/genome.X1-4.pass_etp.fa.gz
+  genome: /home/olivier/repositories/nf-genome-annotator/tests/test_data/data/genome.X1-4.pass_etp.fa.gz
   species: arabidopsis thaliana
   rnaseq:
     bam:
       short:
-        - http://topaz.gatech.edu/GeneMark/Braker/RNAseq.bam
+        - http://bioinf.uni-greifswald.de/augustus/datasets/RNAseq.bam
       long:
-        - tests/test_data/data/ERR12063495.sample.bam # ONT
+        - /home/olivier/repositories/nf-genome-annotator/tests/test_data/data/ERR12063495.sample.bam # ONT
     reads:
       short:
-        - R1: tests/test_data/data/RNAseq.1.fq.gz
-          R2: tests/test_data/data/RNAseq.2.fq.gz
+        - R1: /home/olivier/repositories/nf-genome-annotator/tests/test_data/data/RNAseq.1.fq.gz
+          R2: /home/olivier/repositories/nf-genome-annotator/tests/test_data/data/RNAseq.2.fq.gz
+        - R1: /home/olivier/repositories/nf-genome-annotator/tests/test_data/data/ERR16804971.interleaved.fastq
       long:
-        - tests/test_data/data/ERR12063499.mapped.fastq.gz
-    sra:
-      short:
-        - SRX10300987 # paired-end, Illumina
-      long:
-        - SRS9797748 # Pac Bio; prefetch creates two different folders; very interesting as test because one of the 2 fastq files fails with fastplong
+        - /home/olivier/repositories/nf-genome-annotator/tests/test_data/data/ERR12063499.mapped.fastq.gz
+    #sra:
+    #  short:
+    #    - SRX5724416 # paired-end, Illumina, wt Col-0, ~ 1Gb
+    #  long:
+    #    - SRX10931729 # Isoseq, ~1.1Gb, arabido seedlings, 
   training_proteins:
-    - https://raw.githubusercontent.com/Gaius-Augustus/BRAKER/master/example/proteins.fa
+    - https://raw.githubusercontent.com/Gaius-Augustus/BRAKER4/7a149212a8ae21548458362affb357bf14ed6ecf/test_data/proteins.fa

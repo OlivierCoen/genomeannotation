@@ -96,11 +96,13 @@ class Downloader:
         self.download(url)
         self.untar_decompress(filename)
 
+    """
     def download_pfam_db(self):
-        filename = 'mmseqs.tar.gz'
+        filename = 'pfam.tar.gz'
         url = BASE_URL + filename
         self.download(url)
         self.untar_decompress(filename)
+    """
 
 
 #####################################################
@@ -130,6 +132,7 @@ if __name__ == "__main__":
         case 'mmseqs':
             downloader.download_mmseqs_db()
         case 'pfam':
-            downloader.download_pfam_db()
+            raise NotImplementedError("Pfam is not yet implemented")
+            #downloader.download_pfam_db()
 
     logger.info("Finished")

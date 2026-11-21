@@ -55,6 +55,7 @@ repos:
           modules/local/interproscan6/main.nf
           modules/local/seqtk/sample/main.nf
           modules/local/repeatmodeler/repeatmodeler/main.nf
+          modules/local/sratools/prefetch/main.nf
   - repo: local
     hooks:
       - id: block-pipeline-outdir

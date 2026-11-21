@@ -365,11 +365,11 @@
                     "type": "array",
                     "items": {
                         "type": "string",
-                        "enum": ["eggnogmapper", "interproscan6", "interproscan5"]
+                        "enum": ["eggnogmapper2", "eggnogmapper3", "interproscan6", "interproscan5"]
                     },
                     "description": "Tool(s) to use for functional annotation. Tools should be separated by comma(s).",
-                    "default": ["eggnogmapper", "interproscan6"],
-                    "help_text": "The options `interproscan6` and `interproscan5` are mutually exclusive. `interproscan5` is proposed as a legacy options, especially in case where bugs are encountered with `interproscan6`"
+                    "default": ["eggnogmapper2"],
+                    "help_text": "The following options are mutually exclusive: `eggnogmapper2` / `eggnogmapper3`, `interproscan6` / `interproscan5`. `interproscan5` is proposed as a legacy options, especially in case where bugs are encountered with `interproscan6`. `eggnogmapper2` is still proposed as the default option because `eggnogmapper3` can be run only with `apptainer` / `singularity` (and thus not with `docker` nor `conda`). If you plan on running the pipeline with `apptainer` or `singularity`, please try out `eggnogmapper3`!"
                 },
                 "eggnog_mapper_mode": {
                     "type": "string",

@@ -44,7 +44,7 @@ workflow REPORTING {
         .map { process, tool, version ->
             [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
         }
-        .groupBy(by:0)
+        .groupTuple(by:0)
         .map { process, tool_versions ->
             tool_versions.unique().sort()
             "${process}:\n${tool_versions.join('\n')}"
@@ -104,10 +104,12 @@ workflow REPORTING {
                             .mix( channel.topic('samtools_idxstat_multiqc') )
                             .mix( channel.topic('samtools_flagstat_multiqc') )
                             .mix( channel.topic('agat_stats_multiqc') )
-                            .mix( channel.topic('agat_functs_tats_multiqc').flatMap{ id, files -> files.collect{ file -> [id, file] } } )
+                            .mix( channel.topic('agat_functs_tats_multiqc') )
                             .mix( channel.topic('busco_multiqc') )
 
+    // making sure each multiqc file is emitted alone (not in a list) before grouping by
     def ch_multiqc_file_list = ch_multiqc_files
+                                .flatMap { id, item -> item instanceof Iterable ? item.collect{ file -> [id, file] } : [id, item] } 
                                 .groupBy()
                                 .combine( ch_collated_versions )
                                 .combine(
@@ -116,13 +118,13 @@ workflow REPORTING {
                                         sort: true
                                     )
                                 )
-                                .map { data, version_file, description_file ->
-                                    def id = data[0]
+                                .map { id, files, version_file, description_file ->
                                     def meta = [id: id]
-                                    def file_list = data[1]
-                                    def data_files = file_list + [version_file, description_file]
-                                    [ meta, data_files.flatten().toSorted() ]
-                                } // flatten and sort for reproducibility
+                                    files << version_file
+                                    files << description_file
+                                    // flatten and sort for reproducibility
+                                    [ meta, files.flatten().toSorted() ]
+                                }
 
     // ------------------------------------------------------------------------------------
     // MULTIQC
@@ -136,7 +138,7 @@ workflow REPORTING {
                                 def data_files = data[1]
                                 [meta, data_files, configs, logo, [], []]
                             }
-
+    
     ch_multiqc_out = MULTIQC ( ch_multiqc_input )
 
     emit:

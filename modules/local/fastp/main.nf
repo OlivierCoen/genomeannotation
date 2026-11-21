@@ -21,7 +21,7 @@ process FASTP {
         record(
             id: id,
             read_id: read_id,
-            reads: files('*.fastp.fastq.gz', optional: true)
+            reads: files('*.fastp.fastq.gz', optional: true).toList()
         )
 
     topic:

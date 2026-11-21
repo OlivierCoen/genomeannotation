@@ -4,20 +4,22 @@
   rnaseq:
     sra:
       short:
-        - SRX10300987 # paired-end
-        - SRX26701554 # paired-end, stranded
-        - DRX645493 # single-end
+        - SRX10300987 # paired-end, Illumina
+        - SRX26701554 # paired-end, stranded, Illumina
+        - DRX645493 # single-end, Illumina
+        - SRX12530989 # paired-end, BGISEQ 
       long:
         - ERX16538129
+        - SRS9797748 # Pac Bio; prefetch creates two different folders; very interesting as test because one of the 2 fastq files fails with fastplong 
 
 - sample: ena
   genome: https://raw.githubusercontent.com/Gaius-Augustus/BRAKER/master/example/genome.fa
   species: Arabidopsis thaliana
-  gff: tests/test_data/data/braker.sample.gtf.gz
+  gff: /home/olivier/repositories/nf-genome-annotator/tests/test_data/data/braker.sample.gtf.gz
   rnaseq:
     reads:
       short:
-        - R1: tests/test_data/data/ERR16804971.interleaved.fastq
+        - R1: /home/olivier/repositories/nf-genome-annotator/tests/test_data/data/ERR16804971.interleaved.fastq
     sra:
       short:
         - ERX16197251 # paired-end

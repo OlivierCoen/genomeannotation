@@ -78,7 +78,7 @@ workflow SHORT_READ_PREPARATION {
                         fasta: rec.fasta,
                         reference_gtf: rec.reference_gtf,
                         read_id: subrec.id,
-                        reads: subrec.reads
+                        reads: subrec.reads.toList()
                     ) }
                 }
 

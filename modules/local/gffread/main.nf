@@ -24,8 +24,8 @@ process GFFREAD {
         )
 
     topic:
-        tuple('gffread', id, file(".mrna.fna")) >> 'additional_results'
-        tuple('gffread', id, file(".cds.fna"))  >> 'additional_results'
+        tuple('gffread', id, file("*.mrna.fna")) >> 'additional_results'
+        tuple('gffread', id, file("*.cds.fna"))  >> 'additional_results'
         tuple("${task.process}", 'agat', eval("agat_sp_extract_sequences.pl -h | sed -n 's/.*(AGAT) - Version: \\(.*\\) .*/\\1/p'")) >> 'versions'
 
     script:

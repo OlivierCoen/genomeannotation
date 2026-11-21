@@ -1,6 +1,6 @@
 nextflow.enable.types = true
 
-process EGGNOGMAPPER_EMAPPER {
+process EGGNOGMAPPER2_EMAPPER {
     tag "$id"
     label 'process_high'
 

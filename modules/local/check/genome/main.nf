@@ -6,9 +6,9 @@ process CHECK_GENOME {
     label 'process_high'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
-        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/03/039340bbfffa2261c6ab74f8f66c68151b9116f7784d82cdfe167b2dc90eca1e/data':
-        'community.wave.seqera.io/library/biopython_python:f180d02b12dd489c' }"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+?         'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/0f/0f4141d8d29c695953dda30427b7c29cbe2b6676e91c76b09059eef819d46ddb/data'
+:         'community.wave.seqera.io/library/biopython_python:73ce62beb9e66a1b' }"
 
     input:
         record( id: String, fasta: Path )
@@ -27,7 +27,7 @@ process CHECK_GENOME {
     def genome_ext = genome_name.tokenize('.')[-1]
     """
     if [ "${is_compressed}" == "true" ]; then
-        gzip -c -d ${fasta} > ${genome_name}
+        gzip -dkc ${fasta} > ${genome_name}
     fi
 
     mkdir output
